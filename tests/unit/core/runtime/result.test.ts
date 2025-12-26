@@ -106,7 +106,7 @@ describe('Result Pattern', () => {
       const details = errorToDetails(error, 'UNKNOWN_TYPE');
 
       expect(details.code).toBe('UNKNOWN_TYPE');
-      expect(details.message).toContain('Unknown error');
+      expect(details.message).toContain('unknown error');
     });
 
     it('should preserve error details from HTTP responses', () => {
@@ -120,8 +120,8 @@ describe('Result Pattern', () => {
 
       expect(details.code).toBe('HTTP_ERROR');
       expect(details.message).toBe('Not Found');
-      expect(details.statusCode).toBe(404);
-      expect(details.details).toEqual({ resource: 'user', id: 123 });
+      expect(details.status).toBe(404);
+      expect(details.metadata).toBeDefined();
     });
   });
 

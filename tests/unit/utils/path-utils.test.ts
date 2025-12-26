@@ -23,45 +23,45 @@ describe('Path Utilities', () => {
     });
 
     it('should match single-segment wildcards (*)', () => {
-      expect(matchesPattern('/api/*/users', '/api/v1/users')).toBe(true);
-      expect(matchesPattern('/api/*/users', '/api/v2/users')).toBe(true);
-      expect(matchesPattern('/api/v1/*', '/api/v1/users')).toBe(true);
-      expect(matchesPattern('/api/v1/*', '/api/v1/products')).toBe(true);
+      expect(matchesPattern('/api/v1/users', '/api/*/users')).toBe(true);
+      expect(matchesPattern('/api/v2/users', '/api/*/users')).toBe(true);
+      expect(matchesPattern('/api/v1/users', '/api/v1/*')).toBe(true);
+      expect(matchesPattern('/api/v1/products', '/api/v1/*')).toBe(true);
     });
 
     it('should not match multi-segment wildcards with single *', () => {
-      expect(matchesPattern('/api/*/users', '/api/v1/admin/users')).toBe(false);
+      expect(matchesPattern('/api/v1/admin/users', '/api/*/users')).toBe(false);
     });
 
     it('should match recursive wildcards (**)', () => {
-      expect(matchesPattern('/api/**', '/api/v1/users')).toBe(true);
-      expect(matchesPattern('/api/**', '/api/v1/admin/users')).toBe(true);
-      expect(matchesPattern('/api/**', '/api/v1/admin/users/123')).toBe(true);
+      expect(matchesPattern('/api/v1/users', '/api/**')).toBe(true);
+      expect(matchesPattern('/api/v1/admin/users', '/api/**')).toBe(true);
+      expect(matchesPattern('/api/v1/admin/users/123', '/api/**')).toBe(true);
     });
 
     it('should match patterns with ** in the middle', () => {
-      expect(matchesPattern('/api/**/users', '/api/v1/users')).toBe(true);
-      expect(matchesPattern('/api/**/users', '/api/v1/admin/users')).toBe(true);
-      expect(matchesPattern('/api/**/users', '/api/admin/users')).toBe(true);
+      expect(matchesPattern('/api/v1/users', '/api/**/users')).toBe(true);
+      expect(matchesPattern('/api/v1/admin/users', '/api/**/users')).toBe(true);
+      expect(matchesPattern('/api/admin/users', '/api/**/users')).toBe(true);
     });
 
     it('should match trailing wildcards', () => {
-      expect(matchesPattern('/api/v1/users*', '/api/v1/users')).toBe(true);
-      expect(matchesPattern('/api/v1/users*', '/api/v1/users/123')).toBe(true);
-      expect(matchesPattern('/api/v1/product**', '/api/v1/products')).toBe(true);
-      expect(matchesPattern('/api/v1/product**', '/api/v1/products/123')).toBe(true);
+      expect(matchesPattern('/api/v1/users', '/api/v1/users*')).toBe(true);
+      expect(matchesPattern('/api/v1/users/123', '/api/v1/users*')).toBe(true);
+      expect(matchesPattern('/api/v1/products', '/api/v1/product**')).toBe(true);
+      expect(matchesPattern('/api/v1/products/123', '/api/v1/product**')).toBe(true);
     });
 
     it('should handle path parameters', () => {
-      expect(matchesPattern('/api/v1/users/{id}', '/api/v1/users/123')).toBe(true);
+      expect(matchesPattern('/api/v1/users/123', '/api/v1/users/{id}')).toBe(true);
       expect(
-        matchesPattern('/api/v1/users/{userId}/posts/{postId}', '/api/v1/users/123/posts/456')
+        matchesPattern('/api/v1/users/123/posts/456', '/api/v1/users/{userId}/posts/{postId}')
       ).toBe(true);
     });
 
     it('should handle complex patterns', () => {
-      expect(matchesPattern('/api/v*/users/**', '/api/v1/users/123/profile')).toBe(true);
-      expect(matchesPattern('/api/**/admin/**', '/api/v1/admin/users/123')).toBe(true);
+      expect(matchesPattern('/api/v1/users/123/profile', '/api/v*/users/**')).toBe(true);
+      expect(matchesPattern('/api/v1/admin/users/123', '/api/**/admin/**')).toBe(true);
     });
 
     it('should be case-sensitive by default', () => {
@@ -159,23 +159,23 @@ describe('Path Utilities', () => {
   describe('Real-world scenarios', () => {
     it('should match typical API patterns', () => {
       // Include all v1 endpoints
-      expect(matchesPattern('/api/v1/**', '/api/v1/users')).toBe(true);
-      expect(matchesPattern('/api/v1/**', '/api/v1/users/123')).toBe(true);
-      expect(matchesPattern('/api/v1/**', '/api/v1/admin/users')).toBe(true);
+      expect(matchesPattern('/api/v1/users', '/api/v1/**')).toBe(true);
+      expect(matchesPattern('/api/v1/users/123', '/api/v1/**')).toBe(true);
+      expect(matchesPattern('/api/v1/admin/users', '/api/v1/**')).toBe(true);
 
       // Exclude admin endpoints
-      expect(matchesPattern('**/admin/**', '/api/v1/admin/users')).toBe(true);
-      expect(matchesPattern('**/admin/**', '/api/v1/users')).toBe(false);
+      expect(matchesPattern('/api/v1/admin/users', '**/admin/**')).toBe(true);
+      expect(matchesPattern('/api/v1/users', '**/admin/**')).toBe(false);
     });
 
     it('should handle resource-specific patterns', () => {
       // All product endpoints
-      expect(matchesPattern('/api/v1/product**', '/api/v1/products')).toBe(true);
-      expect(matchesPattern('/api/v1/product**', '/api/v1/products/123')).toBe(true);
-      expect(matchesPattern('/api/v1/product**', '/api/v1/products/123/reviews')).toBe(true);
+      expect(matchesPattern('/api/v1/products', '/api/v1/product**')).toBe(true);
+      expect(matchesPattern('/api/v1/products/123', '/api/v1/product**')).toBe(true);
+      expect(matchesPattern('/api/v1/products/123/reviews', '/api/v1/product**')).toBe(true);
 
       // Should not match similar names
-      expect(matchesPattern('/api/v1/product**', '/api/v1/production')).toBe(true); // Note: ** matches everything after
+      expect(matchesPattern('/api/v1/production', '/api/v1/product**')).toBe(true); // Note: ** matches everything after
     });
 
     it('should extract parameters from RESTful paths', () => {

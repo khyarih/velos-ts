@@ -6,7 +6,7 @@
 import type { GeneratorConfig } from '../types/config.types';
 import type { GeneratedRepository } from '../types/generator.types';
 import { loadOpenAPISpec } from './spec-loader/loader';
-import { normalizeSpec, extractOperations } from './spec-loader/normalizer';
+import { normalizeSpec } from './spec-loader/normalizer';
 import { extractResourceGroups } from './extractor/resource-extractor';
 import { generateAllRepositories } from './generator/repository-generator';
 import { generateIndexFile, generateReadme, generateSummary } from './generator/index-generator';

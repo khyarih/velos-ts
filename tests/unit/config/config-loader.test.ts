@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { resolve } from 'path';
 import { writeFileSync, mkdirSync, rmSync, existsSync } from 'fs';
-import { loadConfig, findConfigFile, mergeConfigs } from '@/config/config-loader';
+import { loadConfig, findConfigFile, mergeConfigs, loadAndMergeConfig } from '@/config/config-loader';
 import { createTempDir, cleanupTempDir } from '@tests/helpers/test-utils';
 
 describe('Configuration Loader', () => {
@@ -81,12 +81,12 @@ overwrite: true
       `;
       writeFileSync(configPath, configContent);
 
-      const config = loadConfig({ configPath });
+      const config = loadConfig(configPath);
 
-      expect(config.openApiSpecPath).toBe('./api-docs.json');
-      expect(config.outputDir).toBe('./src/repositories');
-      expect(config.apiSpecTypesPath).toBe('@/api/api-spec');
-      expect(config.overwrite).toBe(true);
+      expect(config?.openApiSpecPath).toBe('./api-docs.json');
+      expect(config?.outputDir).toBe('./src/repositories');
+      expect(config?.apiSpecTypesPath).toBe('@/api/api-spec');
+      expect(config?.overwrite).toBe(true);
     });
 
     it('should load config with arrays', () => {
@@ -103,30 +103,30 @@ excludePatterns:
       `;
       writeFileSync(configPath, configContent);
 
-      const config = loadConfig({ configPath });
+      const config = loadConfig(configPath);
 
-      expect(config.includePatterns).toEqual(['/api/v1/**', '/api/v2/**']);
-      expect(config.excludePatterns).toEqual(['/api/v1/admin/**']);
+      expect(config?.includePatterns).toEqual(['/api/v1/**', '/api/v2/**']);
+      expect(config?.excludePatterns).toEqual(['/api/v1/admin/**']);
     });
 
     it('should throw error for non-existent config file', () => {
       const configPath = resolve(tempDir, 'non-existent.yaml');
 
-      expect(() => loadConfig({ configPath })).toThrow();
+      expect(() => loadConfig(configPath)).toThrow();
     });
 
     it('should throw error for invalid YAML', () => {
       const configPath = resolve(tempDir, 'invalid.yaml');
       writeFileSync(configPath, 'invalid: yaml: content: [[[');
 
-      expect(() => loadConfig({ configPath })).toThrow();
+      expect(() => loadConfig(configPath)).toThrow();
     });
 
     it('should validate required fields', () => {
       const configPath = resolve(tempDir, 'incomplete.yaml');
       writeFileSync(configPath, 'overwrite: true'); // Missing required fields
 
-      expect(() => loadConfig({ configPath })).toThrow();
+      expect(() => loadConfig(configPath)).toThrow();
     });
 
     it('should apply default values', () => {
@@ -138,12 +138,12 @@ apiSpecTypesPath: '@/api'
       `;
       writeFileSync(configPath, configContent);
 
-      const config = loadConfig({ configPath });
+      const config = loadConfig(configPath);
 
       // Should have default values
-      expect(config.overwrite).toBeDefined();
-      expect(config.generateInterfaces).toBeDefined();
-      expect(config.generateTypeAliases).toBeDefined();
+      expect(config?.overwrite).toBeDefined();
+      expect(config?.generateInterfaces).toBeDefined();
+      expect(config?.generateTypeAliases).toBeDefined();
     });
   });
 
@@ -176,6 +176,9 @@ apiSpecTypesPath: '@/api'
 
     it('should merge arrays correctly', () => {
       const defaults = {
+        openApiSpecPath: './default.json',
+        outputDir: './output',
+        apiSpecTypesPath: '@/api',
         includePatterns: ['/api/**'],
       };
 
@@ -209,6 +212,9 @@ apiSpecTypesPath: '@/api'
 
     it('should preserve boolean false values', () => {
       const defaults = {
+        openApiSpecPath: './default.json',
+        outputDir: './output',
+        apiSpecTypesPath: '@/api',
         overwrite: true,
         generateInterfaces: true,
       };
@@ -240,7 +246,7 @@ apiSpecTypesPath: '@/api'
       process.chdir(tempDir);
 
       try {
-        const config = loadConfig({});
+        const config = loadAndMergeConfig({});
         expect(config.openApiSpecPath).toBe('./api.json');
         expect(config.outputDir).toBe('./repos');
       } finally {
@@ -258,7 +264,7 @@ overwrite: false
       `;
       writeFileSync(configPath, configContent);
 
-      const config = loadConfig({
+      const config = loadAndMergeConfig({
         configPath,
         overrides: {
           outputDir: './custom-output',

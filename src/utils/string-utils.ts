@@ -140,6 +140,8 @@ export function uncapitalize(str: string): string {
  * Pluralizes a word (basic implementation)
  *
  * Handles common English pluralization rules:
+ * - already plural → no change (users → users)
+ * - irregular plurals → no change (data → data)
  * - words ending in 'y' → 'ies' (category → categories)
  * - words ending in sibilants → add 'es' (box → boxes)
  * - default → add 's' (product → products)
@@ -148,6 +150,22 @@ export function uncapitalize(str: string): string {
  * @returns Pluralized word
  */
 export function pluralize(word: string): string {
+  if (!word) {
+    return '';
+  }
+
+  // Already plural or irregular plural forms
+  const irregularPlurals = new Set(['data', 'information', 'sheep', 'fish', 'deer', 'species']);
+  if (irregularPlurals.has(word.toLowerCase())) {
+    return word;
+  }
+
+  // Check if already plural (ends with 's' and not a special case)
+  if (word.endsWith('s') && !word.endsWith('ss') && !word.endsWith('us')) {
+    return word;
+  }
+
+  // Apply pluralization rules
   if (word.endsWith('y') && word.length > 1 && !/[aeiou]y$/i.test(word)) {
     return word.slice(0, -1) + 'ies';
   } else if (
