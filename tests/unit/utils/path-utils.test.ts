@@ -8,6 +8,13 @@ import {
   getPathSegments,
   extractPathParameters,
   normalizePath,
+  joinPath,
+  getLastSegment,
+  getParentPath,
+  hasPathParameters,
+  removePathParameters,
+  getBasePath,
+  matchesAnyPattern,
 } from '@/utils/path-utils';
 
 describe('Path Utilities', () => {
@@ -190,6 +197,97 @@ describe('Path Utilities', () => {
 
       const normalized = paths.map((p) => normalizePath(p));
       expect(normalized.every((p) => p === '/api/v1/users')).toBe(true);
+    });
+  });
+
+  describe('joinPath()', () => {
+    it('should join path segments', () => {
+      expect(joinPath('/api', 'v1', 'users')).toBe('/api/v1/users');
+      expect(joinPath('api', 'v1', 'users')).toBe('api/v1/users');
+    });
+
+    it('should handle leading and trailing slashes', () => {
+      expect(joinPath('/api/', '/v1/', '/users/')).toBe('/api/v1/users');
+    });
+
+    it('should filter empty segments', () => {
+      expect(joinPath('/api', '', 'v1', '', 'users')).toBe('/api/v1/users');
+    });
+  });
+
+  describe('getLastSegment()', () => {
+    it('should get the last segment', () => {
+      expect(getLastSegment('/api/v1/product')).toBe('product');
+      expect(getLastSegment('/api/v1/product/')).toBe('product');
+    });
+
+    it('should return empty string for root path', () => {
+      expect(getLastSegment('/')).toBe('');
+    });
+  });
+
+  describe('getParentPath()', () => {
+    it('should get the parent path', () => {
+      expect(getParentPath('/api/v1/product/123')).toBe('/api/v1/product');
+      expect(getParentPath('/api/v1/product')).toBe('/api/v1');
+    });
+
+    it('should handle root paths', () => {
+      expect(getParentPath('/api')).toBe('/');
+    });
+  });
+
+  describe('hasPathParameters()', () => {
+    it('should detect brace parameters', () => {
+      expect(hasPathParameters('/api/v1/product/{id}')).toBe(true);
+    });
+
+    it('should detect colon parameters', () => {
+      expect(hasPathParameters('/api/v1/product/:id')).toBe(true);
+    });
+
+    it('should return false for paths without parameters', () => {
+      expect(hasPathParameters('/api/v1/product')).toBe(false);
+    });
+  });
+
+  describe('removePathParameters()', () => {
+    it('should remove brace parameters', () => {
+      expect(removePathParameters('/api/v1/product/{id}')).toBe('/api/v1/product/*');
+    });
+
+    it('should remove colon parameters', () => {
+      expect(removePathParameters('/api/v1/product/:id')).toBe('/api/v1/product/*');
+    });
+
+    it('should use custom placeholder', () => {
+      expect(removePathParameters('/api/v1/product/{id}', ':param')).toBe(
+        '/api/v1/product/:param'
+      );
+    });
+  });
+
+  describe('getBasePath()', () => {
+    it('should get base path before parameters', () => {
+      expect(getBasePath('/api/v1/product/{id}')).toBe('/api/v1/product');
+    });
+
+    it('should handle paths with parameters in middle', () => {
+      expect(getBasePath('/api/v1/product/{id}/details')).toBe('/api/v1/product');
+    });
+
+    it('should return full path if no parameters', () => {
+      expect(getBasePath('/api/v1/product')).toBe('/api/v1/product');
+    });
+  });
+
+  describe('matchesAnyPattern()', () => {
+    it('should match if any pattern matches', () => {
+      expect(matchesAnyPattern('/api/v1/users', ['/api/**', '/admin/**'])).toBe(true);
+    });
+
+    it('should return false if no patterns match', () => {
+      expect(matchesAnyPattern('/api/v1/users', ['/admin/**', '/public/**'])).toBe(false);
     });
   });
 });

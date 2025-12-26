@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { success, failure, errorToDetails } from '@/core/runtime/result';
+import { success, failure, errorToDetails, isSuccess, isFailure } from '@/core/runtime/result';
 import type { Result, Success, Failure, ErrorDetails } from '@/core/runtime/result';
 
 describe('Result Pattern', () => {
@@ -148,6 +148,25 @@ describe('Result Pattern', () => {
         expect(result.error.code).toBe('ERROR');
       } else {
         throw new Error('Should not reach here');
+      }
+    });
+
+    it('should work with isSuccess type guard', () => {
+      const result: Result<string> = success('data');
+
+      if (isSuccess(result)) {
+        expect(result.data).toBe('data');
+      }
+    });
+
+    it('should work with isFailure type guard', () => {
+      const result: Result<string> = failure({
+        code: 'ERROR',
+        message: 'Failed',
+      });
+
+      if (isFailure(result)) {
+        expect(result.error.code).toBe('ERROR');
       }
     });
   });
