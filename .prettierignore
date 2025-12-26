@@ -1,0 +1,21 @@
+# Build output
+dist/
+coverage/
+
+# Dependencies
+node_modules/
+
+# Generated files
+*.tsbuildinfo
+
+# Package files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Cache
+.cache/
+.temp/
+
+# Logs
+*.log

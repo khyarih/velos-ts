@@ -1,0 +1,55 @@
+# Repository Generator Configuration
+# This file configures how repositories are generated from your OpenAPI specification
+
+# Path to your OpenAPI specification file (JSON or YAML)
+openApiSpecPath: ./api-docs.json
+
+# Output directory for generated repositories
+outputDir: ./src/generated/repositories
+
+# Path to your openapi-typescript generated types
+# This should match the path used in your openapi-typescript command
+apiSpecTypesPath: '@/api/api-spec'
+
+# Whether to overwrite existing repository files
+overwrite: true
+
+# Whether to use enhanced features (adapters, convenience methods)
+useEnhancements: true
+
+# Endpoint patterns to include (whitelist)
+# Only endpoints matching these patterns will be generated
+# Supports wildcards: * (single segment), ** (multiple segments)
+includePatterns:
+  - /api/v1/product**
+  - /api/v1/category**
+  - /api/v1/order**
+  - /api/auth**
+
+# Endpoint patterns to exclude (blacklist)
+# Endpoints matching these patterns will be skipped
+excludePatterns:
+  - /api/v1/admin/**
+  - /api/v1/internal/**
+  - /api/v1/test/**
+
+# Whether to generate TypeScript interfaces for repositories
+generateInterfaces: true
+
+# Whether to generate type aliases for cleaner imports
+generateTypeAliases: true
+
+# Whether to generate JSDoc comments in the output
+generateJSDocs: true
+
+# Naming strategy (optional)
+# Customize how files, classes, and methods are named
+# namingStrategy:
+#   repositoryClass: '{Resource}Repository'      # Class name pattern
+#   repositoryInterface: 'I{Resource}Repository' # Interface name pattern
+#   repositoryFile: '{resource}.repository.ts'   # File name pattern
+#   methodNaming: camelCase                      # Method naming: camelCase, snake_case, kebab-case
+
+# Custom template directory (optional)
+# Use custom templates for code generation
+# templateDir: ./templates
