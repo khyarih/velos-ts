@@ -5,7 +5,12 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { resolve } from 'path';
 import { writeFileSync, mkdirSync, rmSync, existsSync } from 'fs';
-import { loadConfig, findConfigFile, mergeConfigs, loadAndMergeConfig } from '@/config/config-loader';
+import {
+  loadConfig,
+  findConfigFile,
+  mergeConfigs,
+  loadAndMergeConfig,
+} from '@/config/config-loader';
 import { createTempDir, cleanupTempDir } from '@tests/helpers/test-utils';
 
 describe('Configuration Loader', () => {

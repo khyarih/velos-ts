@@ -96,9 +96,7 @@ export function errorToDetails(
       status: error.status || error.statusCode,
       fieldErrors: error.fieldErrors || error.errors,
       metadata:
-        metadataValue &&
-        typeof metadataValue === 'object' &&
-        !Array.isArray(metadataValue)
+        metadataValue && typeof metadataValue === 'object' && !Array.isArray(metadataValue)
           ? (metadataValue as Record<string, unknown>)
           : undefined,
     };

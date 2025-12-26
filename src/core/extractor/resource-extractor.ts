@@ -199,9 +199,7 @@ export function inferResourceInfo(pathPattern: string, _primaryTag?: string): Re
   // Pattern recognition: /api/vX/resource or /api/vX/group/resource
   if (allSegments[0] === 'api') {
     const hasVersion =
-      allSegments.length > 1 &&
-      allSegments[1] !== undefined &&
-      /^v\d+$/.test(allSegments[1]);
+      allSegments.length > 1 && allSegments[1] !== undefined && /^v\d+$/.test(allSegments[1]);
 
     if (hasVersion) {
       // Format: /api/v1/resource or /api/v1/group/resource
@@ -264,7 +262,10 @@ export function inferResourceInfo(pathPattern: string, _primaryTag?: string): Re
  * // => 'ProductDTO'
  * ```
  */
-export function inferPrimaryEntity(resource: ResourceGroup, _spec: OpenAPISpec): string | undefined {
+export function inferPrimaryEntity(
+  resource: ResourceGroup,
+  _spec: OpenAPISpec
+): string | undefined {
   // Priority 1: Look for successful GET responses (200, 201)
   for (const op of resource.operations) {
     if (op.method === 'get') {

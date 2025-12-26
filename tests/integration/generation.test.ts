@@ -120,7 +120,7 @@ describe('Repository Generation - Integration', () => {
       const getUserOp = normalized.operations.find((op) => op.operationId === 'getUserById');
       expect(getUserOp).toBeDefined();
       expect(getUserOp?.parameters).toBeDefined();
-      expect(getUserOp?.parameters.path).toBeDefined();
+      expect(getUserOp?.parameters?.some((p) => p.in === 'path')).toBe(true);
     });
 
     it('should extract query parameters', () => {
@@ -131,7 +131,7 @@ describe('Repository Generation - Integration', () => {
       // Find operation with query parameters
       const getUserPostsOp = normalized.operations.find((op) => op.operationId === 'getUserPosts');
       expect(getUserPostsOp).toBeDefined();
-      expect(getUserPostsOp?.parameters?.query).toBeDefined();
+      expect(getUserPostsOp?.parameters?.some((p) => p.in === 'query')).toBe(true);
     });
 
     it('should identify request body schemas', () => {

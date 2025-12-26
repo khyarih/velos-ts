@@ -27,6 +27,13 @@ export function matchesPattern(path: string, pattern: string): boolean {
   // Escape special regex characters except *, {, }, and /
   let regexPattern = pattern.replace(/[.+?^$()[\]\\|]/g, '\\$&');
 
+  // Handle trailing wildcards specially - they should match anything including slashes
+  const hasTrailingWildcard = regexPattern.endsWith('*');
+  if (hasTrailingWildcard) {
+    // Remove trailing * or ** and add .* at the end
+    regexPattern = regexPattern.replace(/\*+$/, '') + '<<<TRAILING_WILDCARD>>>';
+  }
+
   // Use a placeholder for ** to avoid conflicts with single *
   regexPattern = regexPattern.replace(/\*\*/g, '<<<GLOBSTAR>>>');
 
@@ -39,6 +46,7 @@ export function matchesPattern(path: string, pattern: string): boolean {
 
   // Replace the placeholder with .* (matches any characters including /)
   regexPattern = regexPattern.replace(/<<<GLOBSTAR>>>/g, '.*');
+  regexPattern = regexPattern.replace(/<<<TRAILING_WILDCARD>>>/g, '.*');
 
   const regex = new RegExp('^' + regexPattern + '$');
   return regex.test(path);

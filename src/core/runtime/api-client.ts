@@ -231,9 +231,8 @@ export class FetchApiClient implements ApiClient {
         throw {
           status: response.status,
           statusCode: response.status,
-          message: (typeof errorDataObj.message === 'string'
-            ? errorDataObj.message
-            : response.statusText),
+          message:
+            typeof errorDataObj.message === 'string' ? errorDataObj.message : response.statusText,
           data: errorDataObj,
         };
       }
