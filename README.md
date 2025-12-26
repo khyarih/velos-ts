@@ -1,20 +1,31 @@
-# Velos-TS
+<p align="center">
+  <img src="asset/velos-ts.png" alt="Velos-TS Logo" width="300" />
+</p>
 
-Generate type-safe TypeScript repositories from OpenAPI specifications.
+<h1 align="center">Velos-TS</h1>
 
-[![npm version](https://img.shields.io/npm/v/velos-ts.svg)](https://www.npmjs.com/package/velos-ts)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/node/v/velos-ts.svg)](https://nodejs.org)
+<p align="center">
+  <strong>Generate type-safe TypeScript repositories from OpenAPI specifications</strong>
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/velos-ts"><img src="https://img.shields.io/npm/v/velos-ts.svg" alt="npm version"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg" alt="Node.js Version"></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.0%2B-blue.svg" alt="TypeScript"></a>
+</p>
+
+---
 
 ## Features
 
-✨ **Zero Manual Type Definitions** - All types derived from OpenAPI spec
-🔒 **Type-Safe API Interactions** - Full TypeScript type safety from request to response
-🎯 **Result Pattern** - Predictable error handling without exceptions
-📦 **Automated Boilerplate** - Generates repositories, interfaces, and type aliases
-🚀 **Simple Integration** - Works as a dev dependency in any TypeScript project
-🎨 **Beautiful CLI** - Intuitive commands with helpful output
-⚙️ **Highly Configurable** - YAML-based configuration with smart defaults
+**Zero Manual Type Definitions** - All types derived from OpenAPI spec  
+**Type-Safe API Interactions** - Full TypeScript type safety from request to response  
+**Result Pattern** - Predictable error handling without exceptions  
+**Automated Boilerplate** - Generates repositories, interfaces, and type aliases  
+**Simple Integration** - Works as a dev dependency in any TypeScript project  
+**Beautiful CLI** - Intuitive commands with helpful output  
+**Highly Configurable** - YAML-based configuration with smart defaults
 
 ## Quick Start
 
@@ -293,7 +304,6 @@ Now `npm run dev` and `npm run build` automatically regenerate repositories!
 
 - [Configuration Guide](./docs/CONFIGURATION.md) - Complete configuration reference
 - [CLI Reference](./docs/CLI.md) - All CLI commands and options
-- [Specification](./SPEC.md) - Project specification and architecture
 
 ## Architecture
 
@@ -307,7 +317,6 @@ Built on a modular architecture with clear separation of concerns:
 - **Config**: YAML-based configuration
 - **CLI**: Beautiful command-line interface
 
-See [SPEC.md](./SPEC.md) for detailed architecture.
 
 ## Advantages Over Alternatives
 

@@ -302,6 +302,4 @@ Error: Failed to load OpenAPI spec from ./api-docs.json
 
 ## See Also
 
-- [Getting Started Guide](./GETTING_STARTED.md)
 - [CLI Reference](./CLI.md)
-- [API Reference](./API.md)
