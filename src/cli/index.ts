@@ -34,7 +34,7 @@ export function createProgram(): Command {
     if (command === 'generate') {
       // Run generate command by default
       const generateCommand = program.commands.find((cmd) => cmd.name() === 'generate');
-      generateCommand?.parseAsync(process.argv.slice(2));
+      void generateCommand?.parseAsync(process.argv.slice(2));
     } else {
       program.outputHelp();
     }

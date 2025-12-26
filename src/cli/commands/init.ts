@@ -20,9 +20,9 @@ export function createInitCommand(): Command {
     .description('Create a sample configuration file')
     .option('-o, --output <path>', 'Output path for config file', 'velos.config.yaml')
     .option('-f, --force', 'Overwrite existing config file', false)
-    .action(async (options) => {
+    .action((options: unknown) => {
       try {
-        await runInit(options);
+        runInit(options as { output: string; force: boolean });
       } catch (error) {
         handleError(error);
       }
@@ -34,7 +34,7 @@ export function createInitCommand(): Command {
 /**
  * Runs the init command
  */
-async function runInit(options: { output: string; force: boolean }): Promise<void> {
+function runInit(options: { output: string; force: boolean }): void {
   const { output, force } = options;
   const outputPath = resolve(output);
 

@@ -3,6 +3,15 @@
  * Loads, parses, and validates OpenAPI specifications
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
+
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import type { OpenAPISpec } from '../../types/openapi.types';

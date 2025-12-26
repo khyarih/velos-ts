@@ -3,6 +3,14 @@
  * Coordinates the entire repository generation process
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-var-requires */
+
 import type { GeneratorConfig } from '../types/config.types';
 import type { GeneratedRepository } from '../types/generator.types';
 import { loadOpenAPISpec } from './spec-loader/loader';

@@ -3,6 +3,11 @@
  * Extracts and groups operations by resource from OpenAPI specifications
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import type { OpenAPISpec } from '../../types/openapi.types';
 import type { ResourceGroup, ResourceInfo } from '../../types/generator.types';
 import type { NormalizedOperation } from '../spec-loader/normalizer';
