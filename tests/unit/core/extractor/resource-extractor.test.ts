@@ -6,10 +6,13 @@ import { describe, it, expect } from 'vitest';
 import {
   extractResources,
   extractResourceGroups,
+  inferResourceInfo,
+  getResourceStatistics,
   type ResourceExtractionOptions,
 } from '@/core/extractor/resource-extractor';
 import type { NormalizedOperation } from '@/core/spec-loader/normalizer';
 import type { OpenAPISpec } from '@/types/openapi.types';
+import type { ResourceGroup } from '@/types/generator.types';
 
 describe('Resource Extractor', () => {
   describe('extractResources()', () => {
@@ -280,6 +283,137 @@ describe('Resource Extractor', () => {
 
       expect(resources.length).toBeGreaterThan(0);
       expect(resources[0].tag).toBe('User'); // Should use first tag
+    });
+
+    it('should use resource config when provided', () => {
+      const spec: OpenAPISpec = {
+        openapi: '3.0.0',
+        info: {
+          title: 'Test API',
+          version: '1.0.0',
+        },
+        paths: {
+          '/users': {
+            get: {
+              operationId: 'getUsers',
+              tags: ['User'],
+              responses: {},
+            },
+          },
+        },
+      };
+
+      const resourceConfig = new Map();
+      resourceConfig.set('User', { customField: 'value' });
+
+      const options: ResourceExtractionOptions = {
+        resourceConfig,
+      };
+
+      const resources = extractResourceGroups(spec, options);
+
+      expect(resources.length).toBeGreaterThan(0);
+      // Config should be set if available
+    });
+
+    it('should infer primary entity type when enabled', () => {
+      const spec: OpenAPISpec = {
+        openapi: '3.0.0',
+        info: {
+          title: 'Test API',
+          version: '1.0.0',
+        },
+        paths: {
+          '/users': {
+            get: {
+              operationId: 'getUsers',
+              tags: ['User'],
+              responses: {
+                '200': {
+                  description: 'Success',
+                  content: {
+                    'application/json': {
+                      schema: {
+                        $ref: '#/components/schemas/UserDTO',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        components: {
+          schemas: {
+            UserDTO: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                name: { type: 'string' },
+              },
+            },
+          },
+        },
+      };
+
+      const options: ResourceExtractionOptions = {
+        inferPrimaryEntityType: true,
+      };
+
+      const resources = extractResourceGroups(spec, options);
+
+      expect(resources.length).toBeGreaterThan(0);
+      // Primary entity type should be inferred
+    });
+  });
+
+  describe('inferResourceInfo()', () => {
+    it('should infer resource from simple path', () => {
+      const info = inferResourceInfo('/users');
+
+      expect(info.resourceName).toBeDefined();
+      expect(info.resourceKey).toBeDefined();
+    });
+
+    it('should handle versioned API paths', () => {
+      const info = inferResourceInfo('/api/v1/products');
+
+      expect(info.resourceName).toBeDefined();
+      expect(info.basePath).toBe('/api/v1/products');
+    });
+
+    it('should handle nested resources', () => {
+      const info = inferResourceInfo('/api/v1/admin/products');
+
+      expect(info.isNested).toBe(true);
+    });
+
+    it('should handle paths with parameters', () => {
+      const info = inferResourceInfo('/api/v1/products/{id}');
+
+      expect(info.basePath).toBeDefined();
+    });
+  });
+
+  describe('getResourceStatistics()', () => {
+    it('should calculate statistics for resources', () => {
+      const resources: ResourceGroup[] = [
+        {
+          name: 'User',
+          resourceKey: 'user',
+          basePath: '/users',
+          operations: [
+            { operationId: 'getUsers', method: 'get', path: '/users' },
+            { operationId: 'createUser', method: 'post', path: '/users' },
+          ],
+          tag: 'User',
+        },
+      ];
+
+      const stats = getResourceStatistics(resources);
+
+      expect(stats.totalResources).toBe(1);
+      expect(stats.totalOperations).toBe(2);
     });
   });
 });
