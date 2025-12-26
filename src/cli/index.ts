@@ -11,7 +11,7 @@ import { Logger } from './utils/logger';
 /**
  * Package version (will be replaced during build)
  */
-const VERSION = '2.0.0';
+const VERSION = '1.0.0';
 
 /**
  * Creates and configures the CLI program

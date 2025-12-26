@@ -51,6 +51,8 @@
     "dist",
     "bin",
     "templates",
+    "examples",
+    "docs",
     "README.md",
     "LICENSE"
   ],

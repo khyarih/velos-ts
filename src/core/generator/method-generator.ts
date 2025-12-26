@@ -38,17 +38,9 @@ export function generateMethod(
 
   const lines: string[] = [];
 
-  // JSDoc comment
-  lines.push('  /**');
-  if (operation.summary) {
-    lines.push(`   * ${operation.summary}`);
-  }
-  if (operation.description) {
-    lines.push(`   * ${operation.description}`);
-  }
-  lines.push('   *');
-  lines.push('   * @async');
-  lines.push('   */');
+  // JSDoc comment with comprehensive documentation
+  const jsdocLines = generateJSDoc(operation);
+  lines.push(...jsdocLines);
 
   // Method signature
   lines.push(`  async ${methodName}(${signature.params}): ${signature.returnType} {`);
@@ -60,6 +52,52 @@ export function generateMethod(
   lines.push('  }');
 
   return lines.join('\n');
+}
+
+/**
+ * Generates JSDoc comment with response codes from OpenAPI spec
+ *
+ * @param operation - Operation
+ * @returns Array of JSDoc comment lines
+ */
+function generateJSDoc(operation: NormalizedOperation): string[] {
+  const lines: string[] = [];
+
+  lines.push('  /**');
+
+  // Summary
+  if (operation.summary) {
+    lines.push(`   * ${operation.summary}`);
+  }
+
+  // Description
+  if (operation.description) {
+    if (operation.summary) lines.push('   *');
+    lines.push(`   * ${operation.description}`);
+  }
+
+  // Response codes (only if declared in spec)
+  if (operation.responses && Object.keys(operation.responses).length > 0) {
+    lines.push('   *');
+    lines.push('   * **Response Codes:**');
+
+    // Sort status codes numerically
+    const sortedCodes = Object.keys(operation.responses).sort((a, b) => {
+      return parseInt(a) - parseInt(b);
+    });
+
+    sortedCodes.forEach((statusCode) => {
+      const response = operation.responses![statusCode];
+      const description = response?.description || '';
+      lines.push(`   * - \`${statusCode}\`: ${description}`);
+    });
+  }
+
+  lines.push('   *');
+  lines.push('   * @async');
+  lines.push('   */');
+
+  return lines;
 }
 
 /**
