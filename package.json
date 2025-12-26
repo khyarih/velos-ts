@@ -29,7 +29,7 @@
     "url": "https://github.com/khyarih/velos-ts/issues"
   },
   "bin": {
-    "velos": "./bin/velos.js"
+    "velos": "./bin/velos.cjs"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

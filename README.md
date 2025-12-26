@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="asset/velos-ts.png" alt="Velos-TS Logo" width="300" />
+  <img src="asset/velos-ts.png" alt="Velos-TS Logo" width="500" />
 </p>
 
 <h1 align="center">Velos-TS</h1>
