@@ -6,9 +6,10 @@
 /**
  * Checks if a path matches a pattern with wildcard support
  *
- * Supports two types of wildcards:
+ * Supports wildcards and path parameters:
  * - `**` matches any number of path segments (including zero)
  * - `*` matches within a single path segment
+ * - `{param}` or `:param` matches a path parameter
  *
  * @param path - Path to check (e.g., '/api/v1/product/123')
  * @param pattern - Pattern with wildcards (e.g., '/api/v1/product/**')
@@ -19,10 +20,35 @@
  * matchesPattern('/api/v1/product/123', '/api/v1/product/**') // true
  * matchesPattern('/api/v1/product/123', '/api/v1/product/*') // true
  * matchesPattern('/api/auth/login', '/api/auth/**') // true
+ * matchesPattern('/api/v1/users/123', '/api/v1/users/{id}') // true
  * ```
  */
 export function matchesPattern(path: string, pattern: string): boolean {
-  const regex = new RegExp('^' + pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*') + '$');
+  // Escape special regex characters except *, {, }, and /
+  let regexPattern = pattern.replace(/[.+?^$()[\]\\|]/g, '\\$&');
+
+  // Handle trailing wildcards specially - they should match anything including slashes
+  const hasTrailingWildcard = regexPattern.endsWith('*');
+  if (hasTrailingWildcard) {
+    // Remove trailing * or ** and add .* at the end
+    regexPattern = regexPattern.replace(/\*+$/, '') + '<<<TRAILING_WILDCARD>>>';
+  }
+
+  // Use a placeholder for ** to avoid conflicts with single *
+  regexPattern = regexPattern.replace(/\*\*/g, '<<<GLOBSTAR>>>');
+
+  // Replace path parameters {id} or :id with a regex that matches any value
+  regexPattern = regexPattern.replace(/\{[^}]+\}/g, '[^/]+'); // {id} -> [^/]+
+  regexPattern = regexPattern.replace(/:([a-zA-Z_][a-zA-Z0-9_]*)/g, '[^/]+'); // :id -> [^/]+
+
+  // Replace single * with [^/]* (matches any characters except /)
+  regexPattern = regexPattern.replace(/\*/g, '[^/]*');
+
+  // Replace the placeholder with .* (matches any characters including /)
+  regexPattern = regexPattern.replace(/<<<GLOBSTAR>>>/g, '.*');
+  regexPattern = regexPattern.replace(/<<<TRAILING_WILDCARD>>>/g, '.*');
+
+  const regex = new RegExp('^' + regexPattern + '$');
   return regex.test(path);
 }
 
@@ -47,12 +73,26 @@ export function matchesAnyPattern(path: string, patterns: string[]): boolean {
  * ```typescript
  * normalizePath('/api/v1//product/') // '/api/v1/product'
  * normalizePath('//api/v1/') // '/api/v1'
+ * normalizePath('api/v1/users') // '/api/v1/users'
+ * normalizePath('/') // '/'
+ * normalizePath('') // '/'
  * ```
  */
 export function normalizePath(path: string): string {
-  return path
-    .replace(/\/+/g, '/') // Replace multiple slashes with single slash
-    .replace(/\/$/, ''); // Remove trailing slash
+  // Handle empty or root path
+  if (!path || path === '/') {
+    return '/';
+  }
+
+  // Replace multiple slashes with single slash and remove trailing slash
+  let normalized = path.replace(/\/+/g, '/').replace(/\/$/, '');
+
+  // Ensure leading slash
+  if (!normalized.startsWith('/')) {
+    normalized = '/' + normalized;
+  }
+
+  return normalized;
 }
 
 /**

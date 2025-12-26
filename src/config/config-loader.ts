@@ -3,7 +3,7 @@
  * Loads and merges configuration from files and defaults
  */
 
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import * as yaml from 'js-yaml';
 import type { GeneratorConfig } from '../types/config.types';
@@ -98,6 +98,7 @@ export function findConfigFile(startDir: string = process.cwd()): string | undef
   let currentDir = resolve(startDir);
   const root = resolve('/');
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     // Check each config file name
     for (const fileName of CONFIG_FILE_NAMES) {
@@ -260,18 +261,16 @@ generateJSDocs: true
 # templateDir: ./templates
 `;
 
-  const fs = require('fs');
-
   const resolvedPath = resolve(outputPath);
   const dir = dirname(resolvedPath);
 
   // Ensure directory exists
   if (!existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+    mkdirSync(dir, { recursive: true });
   }
 
   // Write file
-  fs.writeFileSync(resolvedPath, sampleConfig, 'utf-8');
+  writeFileSync(resolvedPath, sampleConfig, 'utf-8');
 
   console.log(`✅ Created sample configuration file: ${resolvedPath}`);
 }

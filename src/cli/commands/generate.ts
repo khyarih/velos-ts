@@ -28,9 +28,21 @@ export function createGenerateCommand(): Command {
     .option('--exclude <patterns...>', 'Endpoint patterns to exclude')
     .option('--dry-run', 'Show what would be generated without writing files', false)
     .option('--verbose', 'Show detailed logging', false)
-    .action(async (options) => {
+    .action((options: unknown) => {
       try {
-        await runGenerate(options);
+        runGenerate(
+          options as {
+            config?: string;
+            spec?: string;
+            output?: string;
+            types?: string;
+            overwrite?: boolean;
+            include?: string[];
+            exclude?: string[];
+            dryRun: boolean;
+            verbose: boolean;
+          }
+        );
       } catch (error) {
         handleError(error);
       }
@@ -42,7 +54,7 @@ export function createGenerateCommand(): Command {
 /**
  * Runs the generate command
  */
-async function runGenerate(options: {
+function runGenerate(options: {
   config?: string;
   spec?: string;
   output?: string;
@@ -52,7 +64,7 @@ async function runGenerate(options: {
   exclude?: string[];
   dryRun: boolean;
   verbose: boolean;
-}): Promise<void> {
+}): void {
   const { config, spec, output, types, overwrite, include, exclude, dryRun, verbose } = options;
 
   Logger.heading('Repository Generator');
