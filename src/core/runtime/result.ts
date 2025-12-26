@@ -89,12 +89,18 @@ export function errorToDetails(
 
   // Handle HTTP errors (common structure)
   if (isHttpError(error)) {
+    const metadataValue = error.data || error.response?.data;
     return {
       code: error.code || defaultCode,
       message: error.message || 'HTTP request failed',
       status: error.status || error.statusCode,
       fieldErrors: error.fieldErrors || error.errors,
-      metadata: error.data || error.response?.data,
+      metadata:
+        metadataValue &&
+        typeof metadataValue === 'object' &&
+        !Array.isArray(metadataValue)
+          ? (metadataValue as Record<string, unknown>)
+          : undefined,
     };
   }
 

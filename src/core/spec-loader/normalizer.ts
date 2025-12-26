@@ -18,15 +18,26 @@ export interface NormalizedOperation extends OpenAPIOperation {
 }
 
 /**
+ * Result of normalizing a spec with extracted operations
+ */
+export interface NormalizedSpec {
+  /** Normalized OpenAPI specification */
+  spec: OpenAPISpec;
+  /** Extracted and normalized operations */
+  operations: NormalizedOperation[];
+}
+
+/**
  * Normalizes an OpenAPI specification
  * - Ensures all operations have operation IDs
  * - Normalizes method names to lowercase
  * - Resolves $ref references (basic)
+ * - Extracts operations into a flat array
  *
  * @param spec - OpenAPI specification
- * @returns Normalized specification
+ * @returns Normalized specification with operations
  */
-export function normalizeSpec(spec: OpenAPISpec): OpenAPISpec {
+export function normalizeSpec(spec: OpenAPISpec): NormalizedSpec {
   const normalized = { ...spec };
 
   // Normalize paths
@@ -40,7 +51,13 @@ export function normalizeSpec(spec: OpenAPISpec): OpenAPISpec {
     normalized.paths = normalizedPaths;
   }
 
-  return normalized;
+  // Extract operations
+  const operations = extractOperations(normalized);
+
+  return {
+    spec: normalized,
+    operations,
+  };
 }
 
 /**

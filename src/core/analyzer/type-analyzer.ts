@@ -47,7 +47,7 @@ export function collectUsedSchemas(resource: ResourceGroup, spec: OpenAPISpec): 
  * @param spec - OpenAPI specification
  * @returns Array of schema usage information
  */
-export function analyzeSchemaUsage(resource: ResourceGroup, spec: OpenAPISpec): SchemaUsage[] {
+export function analyzeSchemaUsage(resource: ResourceGroup, _spec: OpenAPISpec): SchemaUsage[] {
   const usageMap = new Map<string, SchemaUsage>();
 
   for (const op of resource.operations) {
@@ -72,7 +72,7 @@ export function analyzeSchemaUsage(resource: ResourceGroup, spec: OpenAPISpec): 
       .filter((u) => u.context !== 'request')
       .sort((a, b) => b.usageCount - a.usageCount);
 
-    if (sorted.length > 0) {
+    if (sorted.length > 0 && sorted[0] !== undefined) {
       sorted[0].isPrimary = true;
     }
   }

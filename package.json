@@ -68,6 +68,7 @@
     "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"*.md\" \"docs/**/*.md\"",
     "clean": "rm -rf dist coverage",
     "validate": "node scripts/validate-package.js",
+    "prepare": "npm run build",
     "prepublishOnly": "npm run validate",
     "prepack": "npm run build"
   },

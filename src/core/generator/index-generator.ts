@@ -77,24 +77,26 @@ export function generateReadme(repositories: GeneratedRepository[]): string {
 
   if (repositories.length > 0) {
     const firstRepo = repositories[0];
-    lines.push(`import { ${firstRepo.className} } from './repositories';`);
-    lines.push('');
-    lines.push('// Create API client');
-    lines.push('const apiClient = new FetchApiClient({');
-    lines.push("  baseUrl: 'https://api.example.com',");
-    lines.push('  auth: () => getAuthToken(),');
-    lines.push('});');
-    lines.push('');
-    lines.push('// Create repository');
-    lines.push(`const ${firstRepo.resourceKey}Repo = new ${firstRepo.className}(apiClient);`);
-    lines.push('');
-    lines.push('// Use repository');
-    lines.push(`const result = await ${firstRepo.resourceKey}Repo.someMethod();`);
-    lines.push('if (result.success) {');
-    lines.push('  console.log(result.data);');
-    lines.push('} else {');
-    lines.push('  console.error(result.error);');
-    lines.push('}');
+    if (firstRepo) {
+      lines.push(`import { ${firstRepo.className} } from './repositories';`);
+      lines.push('');
+      lines.push('// Create API client');
+      lines.push('const apiClient = new FetchApiClient({');
+      lines.push("  baseUrl: 'https://api.example.com',");
+      lines.push('  auth: () => getAuthToken(),');
+      lines.push('});');
+      lines.push('');
+      lines.push('// Create repository');
+      lines.push(`const ${firstRepo.resourceKey}Repo = new ${firstRepo.className}(apiClient);`);
+      lines.push('');
+      lines.push('// Use repository');
+      lines.push(`const result = await ${firstRepo.resourceKey}Repo.someMethod();`);
+      lines.push('if (result.success) {');
+      lines.push('  console.log(result.data);');
+      lines.push('} else {');
+      lines.push('  console.error(result.error);');
+      lines.push('}');
+    }
   }
 
   lines.push('```');

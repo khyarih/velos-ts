@@ -13,7 +13,7 @@ import type { GeneratorConfig } from '../../types/config.types';
  * @param config - Generator configuration
  * @returns Type alias definitions as string
  */
-export function generateTypeAliases(usedSchemas: Set<string>, config: GeneratorConfig): string {
+export function generateTypeAliases(usedSchemas: Set<string>, _config: GeneratorConfig): string {
   if (usedSchemas.size === 0) {
     return '';
   }

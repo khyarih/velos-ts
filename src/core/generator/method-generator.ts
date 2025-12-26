@@ -3,7 +3,7 @@
  * Generates repository method implementations
  */
 
-import type { OpenAPISpec } from '../../types/openapi.types';
+import type { OpenAPISchema, OpenAPISpec } from '../../types/openapi.types';
 import type { ResourceGroup, MethodSignature, MethodParameter } from '../../types/generator.types';
 import type { NormalizedOperation } from '../spec-loader/normalizer';
 import { extractSchemaName } from '../../utils/schema-utils';
@@ -160,7 +160,7 @@ export function extractMethodSignature(
 export function generateMethodBody(
   operation: NormalizedOperation,
   resource: ResourceGroup,
-  spec: OpenAPISpec
+  _spec: OpenAPISpec
 ): string {
   const method = operation.method.toLowerCase();
   const pathParams = operation.parameters?.filter((p) => p.in === 'path') || [];
@@ -201,7 +201,7 @@ export function generateMethodBody(
  * @param pathParams - Path parameters
  * @returns Endpoint path template string
  */
-function buildEndpointPath(fullPath: string, basePath: string, pathParams: any[]): string {
+function buildEndpointPath(fullPath: string, basePath: string, _pathParams: any[]): string {
   // Replace base path with ${this.endpoint}
   let path = fullPath.replace(basePath, '${this.endpoint}');
 
@@ -272,7 +272,7 @@ function buildClientCall(
  * @param schema - Parameter schema
  * @returns TypeScript type
  */
-function getParameterType(schema: any): string {
+function getParameterType(schema: OpenAPISchema | undefined): string {
   if (!schema) return 'unknown';
 
   if (schema.type === 'integer' || schema.type === 'number') {

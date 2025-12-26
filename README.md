@@ -31,8 +31,21 @@
 
 ### Installation
 
+**From npm (recommended):**
 ```bash
 npm install --save-dev velos-ts
+```
+
+**From GitHub:**
+```bash
+# Latest from main branch
+npm install --save-dev git+https://github.com/khyarih/velos-ts.git
+
+# Specific branch
+npm install --save-dev git+https://github.com/khyarih/velos-ts.git#branch-name
+
+# Specific tag/release
+npm install --save-dev git+https://github.com/khyarih/velos-ts.git#v2.0.0
 ```
 
 ### Initialize Configuration

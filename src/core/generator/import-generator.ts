@@ -15,9 +15,9 @@ import type { GeneratorConfig } from '../../types/config.types';
  * @returns Import statements as string
  */
 export function generateImports(
-  resource: ResourceGroup,
+  _resource: ResourceGroup,
   config: GeneratorConfig,
-  usedSchemas: Set<string>
+  _usedSchemas: Set<string>
 ): string {
   const imports: string[] = [];
 

@@ -224,11 +224,17 @@ export class FetchApiClient implements ApiClient {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        const errorDataObj =
+          typeof errorData === 'object' && errorData !== null
+            ? (errorData as Record<string, unknown>)
+            : {};
         throw {
           status: response.status,
           statusCode: response.status,
-          message: errorData.message || response.statusText,
-          data: errorData,
+          message: (typeof errorDataObj.message === 'string'
+            ? errorDataObj.message
+            : response.statusText),
+          data: errorDataObj,
         };
       }
 
@@ -236,8 +242,8 @@ export class FetchApiClient implements ApiClient {
 
       // Apply response interceptor if configured
       return this.config.interceptors?.response
-        ? await this.config.interceptors.response<T>(responseData)
-        : responseData;
+        ? await this.config.interceptors.response<T>(responseData as T)
+        : (responseData as T);
     } catch (error) {
       // Apply error interceptor if configured
       if (this.config.interceptors?.error) {

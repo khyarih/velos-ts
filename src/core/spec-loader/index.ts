@@ -28,4 +28,4 @@ export {
   getSpecStatistics,
 } from './normalizer';
 
-export type { NormalizedOperation } from './normalizer';
+export type { NormalizedOperation, NormalizedSpec } from './normalizer';

@@ -4,7 +4,7 @@
  */
 
 import { readFileSync, existsSync } from 'fs';
-import { resolve, dirname, basename } from 'path';
+import { resolve, dirname } from 'path';
 import * as yaml from 'js-yaml';
 import type { GeneratorConfig } from '../types/config.types';
 import { validateConfig, safeValidateConfig, getValidationErrors } from './config-schema';
@@ -261,7 +261,6 @@ generateJSDocs: true
 `;
 
   const fs = require('fs');
-  const path = require('path');
 
   const resolvedPath = resolve(outputPath);
   const dir = dirname(resolvedPath);

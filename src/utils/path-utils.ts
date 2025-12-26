@@ -157,8 +157,12 @@ export function hasPathParameters(path: string): boolean {
  * ```
  */
 export function extractPathParameters(path: string): string[] {
-  const braceParams = [...path.matchAll(/\{([^}]+)\}/g)].map((match) => match[1]);
-  const colonParams = [...path.matchAll(/:([a-zA-Z_][a-zA-Z0-9_]*)/g)].map((match) => match[1]);
+  const braceParams = [...path.matchAll(/\{([^}]+)\}/g)]
+    .map((match) => match[1])
+    .filter((param): param is string => param !== undefined);
+  const colonParams = [...path.matchAll(/:([a-zA-Z_][a-zA-Z0-9_]*)/g)]
+    .map((match) => match[1])
+    .filter((param): param is string => param !== undefined);
   return [...braceParams, ...colonParams];
 }
 

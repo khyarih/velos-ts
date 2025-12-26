@@ -8,7 +8,7 @@ import type { ResourceGroup, ResourceInfo } from '../../types/generator.types';
 import type { NormalizedOperation } from '../spec-loader/normalizer';
 import { extractOperations } from '../spec-loader/normalizer';
 import { singularize, toPascalCase } from '../../utils/string-utils';
-import { getPathSegments, hasPathParameters } from '../../utils/path-utils';
+import { getPathSegments } from '../../utils/path-utils';
 
 /**
  * Resource extraction options
@@ -175,7 +175,7 @@ export function extractResourceGroups(
  * // }
  * ```
  */
-export function inferResourceInfo(pathPattern: string, primaryTag?: string): ResourceInfo {
+export function inferResourceInfo(pathPattern: string, _primaryTag?: string): ResourceInfo {
   // Remove path parameters
   const pathWithoutParams = pathPattern.replace(/\/\{[^}]+\}/g, '');
 
@@ -198,11 +198,14 @@ export function inferResourceInfo(pathPattern: string, primaryTag?: string): Res
 
   // Pattern recognition: /api/vX/resource or /api/vX/group/resource
   if (allSegments[0] === 'api') {
-    const hasVersion = allSegments.length > 1 && /^v\d+$/.test(allSegments[1]);
+    const hasVersion =
+      allSegments.length > 1 &&
+      allSegments[1] !== undefined &&
+      /^v\d+$/.test(allSegments[1]);
 
     if (hasVersion) {
       // Format: /api/v1/resource or /api/v1/group/resource
-      if (allSegments.length === 3) {
+      if (allSegments.length === 3 && allSegments[2] !== undefined) {
         // /api/v1/product → ['product']
         resourceSegments = [allSegments[2]];
         basePath = '/' + allSegments.slice(0, 3).join('/');
@@ -261,7 +264,7 @@ export function inferResourceInfo(pathPattern: string, primaryTag?: string): Res
  * // => 'ProductDTO'
  * ```
  */
-export function inferPrimaryEntity(resource: ResourceGroup, spec: OpenAPISpec): string | undefined {
+export function inferPrimaryEntity(resource: ResourceGroup, _spec: OpenAPISpec): string | undefined {
   // Priority 1: Look for successful GET responses (200, 201)
   for (const op of resource.operations) {
     if (op.method === 'get') {

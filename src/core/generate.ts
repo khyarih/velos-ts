@@ -67,14 +67,14 @@ export function generateRepositories(config: GeneratorConfig): GenerationResult 
 
   // Step 2: Normalize specification
   console.log('[STEP 2/6] Normalizing specification...');
-  const normalizedSpec = normalizeSpec(spec);
-  const allOperations = extractOperations(normalizedSpec);
+  const normalized = normalizeSpec(spec);
+  const allOperations = normalized.operations;
   console.log(`[NORMALIZED] ${allOperations.length} operations found`);
   console.log('');
 
   // Step 3: Extract resource groups
   console.log('[STEP 3/6] Extracting resource groups...');
-  const resources = extractResourceGroups(normalizedSpec, {
+  const resources = extractResourceGroups(normalized.spec, {
     includePatterns: config.includePatterns,
     excludePatterns: config.excludePatterns,
     inferPrimaryEntityType: true,
@@ -89,7 +89,7 @@ export function generateRepositories(config: GeneratorConfig): GenerationResult 
 
   // Step 4: Generate repository files
   console.log('[STEP 4/6] Generating repository files...');
-  const repositories = generateAllRepositories(resources, config, normalizedSpec);
+  const repositories = generateAllRepositories(resources, config, normalized.spec);
   console.log(`[GENERATED] ${repositories.length} repository files`);
   console.log('');
 

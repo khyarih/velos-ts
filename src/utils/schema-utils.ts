@@ -110,7 +110,7 @@ export function parseGenericType(schemaName: string): {
   inner: string;
 } | null {
   const match = schemaName.match(/^([^<«]+)[<«]([^>»]+)[>»]$/);
-  if (!match) {
+  if (!match || !match[1] || !match[2]) {
     return null;
   }
 
