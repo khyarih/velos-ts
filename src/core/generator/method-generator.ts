@@ -81,13 +81,14 @@ function generateJSDoc(operation: NormalizedOperation): string[] {
     lines.push('   *');
     lines.push('   * **Response Codes:**');
 
+    const responses = operation.responses;
     // Sort status codes numerically
-    const sortedCodes = Object.keys(operation.responses).sort((a, b) => {
+    const sortedCodes = Object.keys(responses).sort((a, b) => {
       return parseInt(a) - parseInt(b);
     });
 
     sortedCodes.forEach((statusCode) => {
-      const response = operation.responses![statusCode];
+      const response = responses[statusCode];
       const description = response?.description || '';
       lines.push(`   * - \`${statusCode}\`: ${description}`);
     });

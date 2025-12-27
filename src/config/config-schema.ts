@@ -24,6 +24,37 @@ export const namingStrategySchema = z
   .optional();
 
 /**
+ * Resource grouping configuration schema
+ */
+export const resourceGroupingSchema = z
+  .object({
+    /**
+     * Number of path segments to use for resource grouping (after /api/vX/)
+     *
+     * Examples with depth=1:
+     * - /api/v1/orders → 'orders'
+     * - /api/v1/orders/{id} → 'orders'
+     * - /api/v1/orders/{id}/items → 'orders' (items grouped under orders)
+     * - /api/v1/admin/products → 'admin' (only 1 segment!)
+     *
+     * Examples with depth=2:
+     * - /api/v1/orders → 'orders'
+     * - /api/v1/orders/{id}/items → 'orders.items'
+     * - /api/v1/admin/products → 'admin.products'
+     */
+    depth: z.number().min(1).max(3).default(1),
+
+    /**
+     * Grouping strategy:
+     * - 'root': Always use only the root resource (first segment after version)
+     * - 'full': Use all path segments (nested resources create separate repos)
+     * - 'auto': Auto-detect based on path parameters (sub-resources grouped with root)
+     */
+    strategy: z.enum(['root', 'full', 'auto']).default('auto'),
+  })
+  .optional();
+
+/**
  * Generator hooks schema
  */
 export const generatorHooksSchema = z
@@ -75,6 +106,9 @@ export const generatorConfigSchema = z.object({
 
   /** Custom naming strategy */
   namingStrategy: namingStrategySchema,
+
+  /** Resource grouping configuration */
+  resourceGrouping: resourceGroupingSchema,
 
   /** Custom template directory */
   templateDir: z.string().optional(),

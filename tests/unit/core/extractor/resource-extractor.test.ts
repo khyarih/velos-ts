@@ -383,15 +383,65 @@ describe('Resource Extractor', () => {
     });
 
     it('should handle nested resources', () => {
-      const info = inferResourceInfo('/api/v1/admin/products');
+      // With depth=2, grouped resources like /api/v1/admin/products create nested resources
+      const info = inferResourceInfo('/api/v1/admin/products', undefined, { depth: 2 });
 
       expect(info.isNested).toBe(true);
+      expect(info.resourceKey).toBe('admin.products'); // Key uses path segments as-is
+      expect(info.resourceName).toBe('AdminProduct'); // Name is singularized and PascalCased
     });
 
     it('should handle paths with parameters', () => {
       const info = inferResourceInfo('/api/v1/products/{id}');
 
       expect(info.basePath).toBeDefined();
+    });
+
+    it('should group sub-resources under root with auto strategy', () => {
+      // Default strategy='auto' groups sub-resources under root
+      const info = inferResourceInfo('/api/v1/orders/{id}/items');
+
+      expect(info.resourceKey).toBe('orders'); // Note: path segment not singularized in key
+      expect(info.resourceName).toBe('Order'); // But name is singularized
+      expect(info.isNested).toBe(false);
+    });
+
+    it('should respect depth configuration with auto strategy', () => {
+      // With depth=2 and auto strategy, sub-resources still grouped under root
+      const info = inferResourceInfo('/api/v1/orders/{id}/items', undefined, {
+        depth: 2,
+        strategy: 'auto',
+      });
+
+      expect(info.resourceKey).toBe('orders');
+      expect(info.resourceName).toBe('Order');
+    });
+
+    it('should use full strategy to create separate repos for sub-resources', () => {
+      // strategy='full' creates separate repos for sub-resources
+      const info = inferResourceInfo('/api/v1/orders/{id}/items', undefined, { strategy: 'full' });
+
+      expect(info.resourceKey).toBe('orders.items');
+      expect(info.resourceName).toBe('OrderItem'); // Each segment singularized: Order + Item
+      expect(info.isNested).toBe(true);
+    });
+
+    it('should use root strategy to always use first segment', () => {
+      // strategy='root' always uses only the root segment
+      const info1 = inferResourceInfo('/api/v1/admin/products', undefined, { strategy: 'root' });
+      const info2 = inferResourceInfo('/api/v1/orders/{id}/items', undefined, { strategy: 'root' });
+
+      expect(info1.resourceKey).toBe('admin');
+      expect(info2.resourceKey).toBe('orders');
+    });
+
+    it('should handle depth configuration for grouped resources', () => {
+      // Without params, depth controls how many segments to include
+      const info1 = inferResourceInfo('/api/v1/admin/products', undefined, { depth: 1 });
+      const info2 = inferResourceInfo('/api/v1/admin/products', undefined, { depth: 2 });
+
+      expect(info1.resourceKey).toBe('admin');
+      expect(info2.resourceKey).toBe('admin.products');
     });
   });
 

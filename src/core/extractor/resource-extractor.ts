@@ -16,6 +16,16 @@ import { singularize, toPascalCase } from '../../utils/string-utils';
 import { getPathSegments } from '../../utils/path-utils';
 
 /**
+ * Resource grouping configuration
+ */
+export interface ResourceGroupingConfig {
+  /** Number of path segments to use for grouping */
+  depth?: number;
+  /** Grouping strategy */
+  strategy?: 'root' | 'full' | 'auto';
+}
+
+/**
  * Resource extraction options
  */
 export interface ResourceExtractionOptions {
@@ -27,6 +37,8 @@ export interface ResourceExtractionOptions {
   inferPrimaryEntityType?: boolean;
   /** Custom resource configuration */
   resourceConfig?: Map<string, any>;
+  /** Resource grouping configuration */
+  resourceGrouping?: ResourceGroupingConfig;
 }
 
 /**
@@ -34,6 +46,7 @@ export interface ResourceExtractionOptions {
  * Simpler version that doesn't require the full spec
  *
  * @param operations - Array of normalized operations
+ * @param groupingConfig - Optional resource grouping configuration
  * @returns Array of resource groups
  *
  * @example
@@ -42,26 +55,34 @@ export interface ResourceExtractionOptions {
  * const resources = extractResources(operations);
  * ```
  */
-export function extractResources(operations: NormalizedOperation[]): ResourceGroup[] {
+export function extractResources(
+  operations: NormalizedOperation[],
+  groupingConfig?: ResourceGroupingConfig
+): ResourceGroup[] {
   const resourceMap = new Map<string, ResourceGroup>();
 
   for (const operation of operations) {
     // Infer resource information from path
-    const resourceInfo = inferResourceInfo(operation.path, operation.tags?.[0] || 'Uncategorized');
+    const resourceInfo = inferResourceInfo(
+      operation.path,
+      operation.tags?.[0] || 'Uncategorized',
+      groupingConfig
+    );
 
     // Get or create resource group
-    if (!resourceMap.has(resourceInfo.resourceKey)) {
-      resourceMap.set(resourceInfo.resourceKey, {
+    let group = resourceMap.get(resourceInfo.resourceKey);
+    if (!group) {
+      group = {
         name: resourceInfo.resourceName,
         resourceKey: resourceInfo.resourceKey,
         basePath: resourceInfo.basePath,
         operations: [],
         tag: operation.tags?.[0] || 'Uncategorized',
-      });
+      };
+      resourceMap.set(resourceInfo.resourceKey, group);
     }
 
     // Add operation to resource group
-    const group = resourceMap.get(resourceInfo.resourceKey)!;
     group.operations.push(operation);
   }
 
@@ -93,6 +114,7 @@ export function extractResourceGroups(
     excludePatterns,
     inferPrimaryEntityType = true,
     resourceConfig,
+    resourceGrouping,
   } = options;
 
   // Extract all operations from spec
@@ -118,24 +140,29 @@ export function extractResourceGroups(
 
   for (const operation of filteredOperations) {
     // Infer resource information from path
-    const resourceInfo = inferResourceInfo(operation.path, operation.tags?.[0] || 'Uncategorized');
+    const resourceInfo = inferResourceInfo(
+      operation.path,
+      operation.tags?.[0] || 'Uncategorized',
+      resourceGrouping
+    );
 
     // Get or create resource group
-    if (!resourceMap.has(resourceInfo.resourceKey)) {
+    let group = resourceMap.get(resourceInfo.resourceKey);
+    if (!group) {
       const config = resourceConfig?.get(resourceInfo.resourceName);
 
-      resourceMap.set(resourceInfo.resourceKey, {
+      group = {
         name: resourceInfo.resourceName,
         resourceKey: resourceInfo.resourceKey,
         basePath: resourceInfo.basePath,
         operations: [],
         tag: operation.tags?.[0] || 'Uncategorized',
         config,
-      });
+      };
+      resourceMap.set(resourceInfo.resourceKey, group);
     }
 
     // Add operation to resource group
-    const group = resourceMap.get(resourceInfo.resourceKey)!;
     group.operations.push(operation);
   }
 
@@ -157,6 +184,7 @@ export function extractResourceGroups(
  *
  * @param pathPattern - API endpoint path
  * @param primaryTag - Primary tag from OpenAPI spec
+ * @param groupingConfig - Resource grouping configuration
  * @returns Resource information
  *
  * @example
@@ -180,7 +208,15 @@ export function extractResourceGroups(
  * // }
  * ```
  */
-export function inferResourceInfo(pathPattern: string, _primaryTag?: string): ResourceInfo {
+export function inferResourceInfo(
+  pathPattern: string,
+  _primaryTag?: string,
+  groupingConfig?: ResourceGroupingConfig
+): ResourceInfo {
+  // Get configuration with defaults
+  const depth = groupingConfig?.depth ?? 1;
+  const strategy = groupingConfig?.strategy ?? 'auto';
+
   // Remove path parameters
   const pathWithoutParams = pathPattern.replace(/\/\{[^}]+\}/g, '');
 
@@ -213,10 +249,34 @@ export function inferResourceInfo(pathPattern: string, _primaryTag?: string): Re
         resourceSegments = [allSegments[2]];
         basePath = '/' + allSegments.slice(0, 3).join('/');
       } else if (allSegments.length >= 4) {
-        // /api/v1/admin/product → ['admin', 'product']
-        // Take last 2 segments as resource for nested resources
-        resourceSegments = allSegments.slice(-2);
-        basePath = '/' + allSegments.join('/');
+        // Apply grouping strategy
+        if (strategy === 'root') {
+          // Always use root resource (first segment after version)
+          // /api/v1/orders/items → ['orders']
+          // /api/v1/admin/products → ['admin']
+          resourceSegments = [allSegments[2]];
+          basePath = '/' + allSegments.slice(0, 3).join('/');
+        } else if (strategy === 'full') {
+          // Use all path segments (old behavior)
+          // /api/v1/orders/items → ['orders', 'items']
+          // /api/v1/admin/products → ['admin', 'products']
+          resourceSegments = allSegments.slice(-2);
+          basePath = '/' + allSegments.join('/');
+        } else {
+          // strategy === 'auto': Auto-detect based on path parameters
+          // If original path has params, treat additional segments as sub-resources
+          const hasPathParams = pathPattern.includes('/{');
+
+          if (hasPathParams) {
+            // /api/v1/orders/{id}/items → ['orders'] (always root, ignore depth)
+            resourceSegments = [allSegments[2]];
+            basePath = '/' + allSegments.slice(0, 3).join('/');
+          } else {
+            // /api/v1/admin/products → ['admin', 'products'] (if depth >= 2)
+            resourceSegments = allSegments.slice(2, 2 + depth);
+            basePath = '/' + allSegments.join('/');
+          }
+        }
       } else {
         // Fallback
         resourceSegments = allSegments.slice(2);
@@ -224,12 +284,12 @@ export function inferResourceInfo(pathPattern: string, _primaryTag?: string): Re
       }
     } else {
       // Format: /api/resource (no version)
-      resourceSegments = allSegments.slice(1);
+      resourceSegments = allSegments.slice(1, 1 + depth);
       basePath = pathWithoutParams;
     }
   } else {
     // No /api prefix
-    resourceSegments = allSegments;
+    resourceSegments = allSegments.slice(0, depth);
     basePath = pathWithoutParams;
   }
 

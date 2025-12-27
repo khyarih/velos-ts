@@ -77,11 +77,14 @@ export function loadConfigFromFile(configPath: string): GeneratorConfig {
   // Validate configuration
   const validation = safeValidateConfig(config);
   if (!validation.success) {
-    const errors = getValidationErrors(validation.error!);
+    const validationError = validation.error;
+    const errors = validationError
+      ? getValidationErrors(validationError)
+      : ['Unknown validation error'];
     throw new ConfigLoadError(
       `Invalid configuration:\n${errors.join('\n')}`,
       'CONFIG_VALIDATION_ERROR',
-      validation.error
+      validationError
     );
   }
 

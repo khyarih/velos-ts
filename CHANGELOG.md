@@ -19,6 +19,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.1] - TBD
 
 ### Added
+- **Resource Grouping Configuration**: Flexible control over how endpoints are grouped into repositories
+  - **Strategy Options**:
+    - `auto` (default): Intelligently groups sub-resources under root based on path parameters
+    - `root`: Always uses only the first segment for maximum grouping
+    - `full`: Creates separate repositories for all path segments
+  - **Depth Control**: Configure how many path segments to use for grouping (1-3)
+  - **Use Cases**:
+    - Group `/api/v1/orders/{id}/items` under `OrderRepository` (auto strategy)
+    - Create `AdminProductRepository` for `/api/v1/admin/products` (depth: 2)
+    - Separate `OrderItemRepository` for nested resources (full strategy)
+  - See [Resource Grouping Documentation](./docs/RESOURCE_GROUPING.md) for details
 - **New Examples Directory**: Comprehensive examples for common authentication patterns
   - Server-side cookie authentication with CSRF protection
   - Request/response interceptor patterns
@@ -54,13 +65,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced JSDoc generation to include response codes and descriptions
 
 ### Technical Details
+- Added `resourceGrouping` configuration schema with `depth` and `strategy` options
+- Updated `inferResourceInfo()` to support configurable grouping strategies
+- Updated `extractResources()` and `extractResourceGroups()` to accept grouping configuration
+- Added comprehensive tests for all grouping strategies and depth configurations
 - Updated `mapSchemaToTypeString()` to return schema names directly instead of full paths
 - Updated `mapSchemaTypeToTypeScript()` for consistent type alias usage
 - Added `generateJSDoc()` function in method-generator.ts to extract and document response codes
 - Response codes extracted from `operation.responses` and sorted numerically
-- All existing tests pass with the new type resolution
 - Created `/examples` directory with comprehensive documentation
+- Created `/docs/RESOURCE_GROUPING.md` with detailed configuration guide
 - Added `generated-code-example.ts` showing practical usage of response code documentation
+- All 183 tests passing
 
 ---
 
