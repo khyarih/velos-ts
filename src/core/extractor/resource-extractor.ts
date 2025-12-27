@@ -266,10 +266,11 @@ export function inferResourceInfo(
           resourceSegments = [rootSegment];
           basePath = '/' + allSegments.slice(0, resourceStartIndex + 1).join('/');
         } else if (strategy === 'full') {
-          // Use all path segments (old behavior)
+          // Use all resource segments after version (not just last 2)
           // /api/v1/orders/items → ['orders', 'items']
           // /api/v1/admin/products → ['admin', 'products']
-          resourceSegments = allSegments.slice(-2);
+          // /api/v1/admin/products/categories → ['admin', 'products', 'categories']
+          resourceSegments = allSegments.slice(resourceStartIndex);
           basePath = '/' + allSegments.join('/');
         } else {
           // strategy === 'auto': Auto-detect based on path parameters
