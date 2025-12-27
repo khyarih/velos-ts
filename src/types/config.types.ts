@@ -40,6 +40,9 @@ export interface GeneratorConfig {
   /** Custom naming strategy */
   namingStrategy?: NamingStrategy;
 
+  /** Resource grouping configuration */
+  resourceGrouping?: ResourceGroupingConfig;
+
   /** Custom template directory */
   templateDir?: string;
 
@@ -65,6 +68,26 @@ export interface NamingStrategy {
 
   /** Type alias naming pattern (default: same as schema name) */
   typeAlias?: string;
+}
+
+/**
+ * Resource grouping configuration
+ */
+export interface ResourceGroupingConfig {
+  /**
+   * Number of path segments to use for resource grouping (after /api/vX/)
+   * Default: 1
+   */
+  depth?: number;
+
+  /**
+   * Grouping strategy:
+   * - 'root': Always use only the first segment for maximum grouping
+   * - 'full': Creates separate repositories for all path segments
+   * - 'auto': Auto-detect based on path parameters (sub-resources grouped with root)
+   * Default: 'auto'
+   */
+  strategy?: 'root' | 'full' | 'auto';
 }
 
 /**
