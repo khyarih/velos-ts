@@ -24,11 +24,6 @@ export function generateTypeAliases(usedSchemas: Set<string>, _config: Generator
   const sortedSchemas = Array.from(usedSchemas).sort();
 
   for (const schemaName of sortedSchemas) {
-    // Skip the generic Page type - it doesn't exist as a direct schema
-    if (schemaName === 'Page') {
-      continue;
-    }
-
     const alias = `export type ${schemaName} = components['schemas']['${schemaName}'];`;
     aliases.push(alias);
   }
