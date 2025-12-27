@@ -236,6 +236,7 @@ export function inferResourceInfo(
   // Determine resource segment(s) based on path structure
   let resourceSegments: string[];
   let basePath: string;
+  let resourceStartIndex: number; // Index where resource segments start
 
   // Pattern recognition: /api/vX/resource or /api/vX/group/resource
   if (allSegments[0] === 'api') {
@@ -243,22 +244,27 @@ export function inferResourceInfo(
       allSegments.length > 1 && allSegments[1] !== undefined && /^v\d+$/.test(allSegments[1]);
 
     if (hasVersion) {
-      // Format: /api/v1/resource or /api/v1/group/resource
-      if (allSegments.length === 3 && allSegments[2] !== undefined) {
+      // Format: /api/v1/resource - resources start at index 2
+      resourceStartIndex = 2;
+
+      if (
+        allSegments.length === resourceStartIndex + 1 &&
+        allSegments[resourceStartIndex] !== undefined
+      ) {
         // /api/v1/product → ['product']
-        resourceSegments = [allSegments[2]];
-        basePath = '/' + allSegments.slice(0, 3).join('/');
-      } else if (allSegments.length >= 4) {
+        resourceSegments = [allSegments[resourceStartIndex] as string];
+        basePath = '/' + allSegments.slice(0, resourceStartIndex + 1).join('/');
+      } else if (allSegments.length >= resourceStartIndex + 2) {
         // Apply grouping strategy
-        // Safe to access allSegments[2] here since length >= 4
-        const rootSegment = allSegments[2] as string;
+        // Safe to access allSegments[resourceStartIndex] here since length >= resourceStartIndex + 2
+        const rootSegment = allSegments[resourceStartIndex] as string;
 
         if (strategy === 'root') {
           // Always use root resource (first segment after version)
           // /api/v1/orders/items → ['orders']
           // /api/v1/admin/products → ['admin']
           resourceSegments = [rootSegment];
-          basePath = '/' + allSegments.slice(0, 3).join('/');
+          basePath = '/' + allSegments.slice(0, resourceStartIndex + 1).join('/');
         } else if (strategy === 'full') {
           // Use all path segments (old behavior)
           // /api/v1/orders/items → ['orders', 'items']
@@ -273,27 +279,31 @@ export function inferResourceInfo(
           if (hasPathParams) {
             // /api/v1/orders/{id}/items → ['orders'] (always root, ignore depth)
             resourceSegments = [rootSegment];
-            basePath = '/' + allSegments.slice(0, 3).join('/');
+            basePath = '/' + allSegments.slice(0, resourceStartIndex + 1).join('/');
           } else {
             // /api/v1/admin/products → ['admin', 'products'] (if depth >= 2)
-            resourceSegments = allSegments.slice(2, 2 + depth);
-            basePath = '/' + allSegments.join('/');
+            // /api/v1/products/sku → ['products'] (depth=1, use root)
+            resourceSegments = allSegments.slice(resourceStartIndex, resourceStartIndex + depth);
+            // BasePath includes prefix + depth resource segments
+            basePath = '/' + allSegments.slice(0, resourceStartIndex + depth).join('/');
           }
         }
       } else {
         // Fallback
-        resourceSegments = allSegments.slice(2);
+        resourceSegments = allSegments.slice(resourceStartIndex);
         basePath = '/' + allSegments.join('/');
       }
     } else {
-      // Format: /api/resource (no version)
-      resourceSegments = allSegments.slice(1, 1 + depth);
-      basePath = pathWithoutParams;
+      // Format: /api/resource (no version) - resources start at index 1
+      resourceStartIndex = 1;
+      resourceSegments = allSegments.slice(resourceStartIndex, resourceStartIndex + depth);
+      basePath = '/' + allSegments.slice(0, resourceStartIndex + depth).join('/');
     }
   } else {
-    // No /api prefix
-    resourceSegments = allSegments.slice(0, depth);
-    basePath = pathWithoutParams;
+    // No /api prefix - resources start at index 0
+    resourceStartIndex = 0;
+    resourceSegments = allSegments.slice(resourceStartIndex, resourceStartIndex + depth);
+    basePath = '/' + allSegments.slice(0, resourceStartIndex + depth).join('/');
   }
 
   // Ensure we have at least one segment

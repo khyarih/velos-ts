@@ -443,6 +443,26 @@ describe('Resource Extractor', () => {
       expect(info1.resourceKey).toBe('admin');
       expect(info2.resourceKey).toBe('admin.products');
     });
+
+    it('should handle SKU-like endpoints with path parameters', () => {
+      // /api/v1/products/sku/{sku} should group under products
+      const info = inferResourceInfo('/api/v1/products/sku/{sku}');
+
+      expect(info.resourceKey).toBe('products');
+      expect(info.resourceName).toBe('Product');
+      expect(info.basePath).toBe('/api/v1/products');
+      expect(info.isNested).toBe(false);
+    });
+
+    it('should handle SKU-like endpoints without path parameters', () => {
+      // /api/v1/products/sku (without param) should also group under products
+      const info = inferResourceInfo('/api/v1/products/sku');
+
+      expect(info.resourceKey).toBe('products');
+      expect(info.resourceName).toBe('Product');
+      expect(info.basePath).toBe('/api/v1/products');
+      expect(info.isNested).toBe(false);
+    });
   });
 
   describe('getResourceStatistics()', () => {
