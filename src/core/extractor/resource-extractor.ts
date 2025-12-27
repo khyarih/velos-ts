@@ -474,10 +474,41 @@ function extractSchemaNameFromRef(ref: string): string {
  * @param path - Path to check
  * @param patterns - Patterns to match against
  * @returns True if path matches any pattern
+ *
+ * Pattern rules:
+ * - `*` matches any characters except `/` (single segment)
+ * - `**` matches any characters including `/` (multiple segments)
+ * - `/path/**` matches `/path` AND `/path/anything`
+ *
+ * @example
+ * `/api/v1/product**` matches:
+ *   - `/api/v1/product`
+ *   - `/api/v1/products`
+ *   - `/api/v1/product/{id}`
+ *
+ * `/api/v1/product/**` matches:
+ *   - `/api/v1/product`
+ *   - `/api/v1/product/{id}`
+ *   - `/api/v1/product/sku/{sku}`
  */
 function matchesAnyPattern(path: string, patterns: string[]): boolean {
   return patterns.some((pattern) => {
-    const regex = new RegExp('^' + pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*') + '$');
+    let regexPattern: string;
+
+    // Special handling for /** pattern - should match base path too
+    // /api/v1/product/** should match both /api/v1/product and /api/v1/product/anything
+    if (pattern.endsWith('/**')) {
+      const basePath = pattern.slice(0, -3); // Remove /**
+      // Replace wildcards in base path first
+      const baseRegex = basePath.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*');
+      // Add optional /anything part (already in regex format, don't process further)
+      regexPattern = baseRegex + '(/.*)?';
+    } else {
+      // Standard wildcard replacement
+      regexPattern = pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*');
+    }
+
+    const regex = new RegExp('^' + regexPattern + '$');
     return regex.test(path);
   });
 }

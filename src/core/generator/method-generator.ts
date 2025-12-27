@@ -16,7 +16,7 @@ import type { OpenAPISchema, OpenAPISpec } from '../../types/openapi.types';
 import type { ResourceGroup, MethodSignature, MethodParameter } from '../../types/generator.types';
 import type { NormalizedOperation } from '../spec-loader/normalizer';
 import { extractSchemaName } from '../../utils/schema-utils';
-import { toCamelCase } from '../../utils/string-utils';
+import { toCamelCase, toPascalCase } from '../../utils/string-utils';
 import { inferReturnType } from '../analyzer/type-analyzer';
 
 /**
@@ -152,7 +152,7 @@ export function extractMethodSignature(
   // Query parameters
   const queryParams = operation.parameters?.filter((p) => p.in === 'query') || [];
   if (queryParams.length > 0) {
-    const queryTypeName = `${toCamelCase(operation.operationId)}QueryParams`;
+    const queryTypeName = `${toPascalCase(operation.operationId)}QueryParams`;
     parameters.push({
       name: 'queryParams',
       type: queryTypeName,

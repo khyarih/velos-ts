@@ -261,6 +261,54 @@ describe('Resource Extractor', () => {
       expect(allOps[0].path).toBe('/api/users');
     });
 
+    it('should match base path with /** pattern', () => {
+      const spec: OpenAPISpec = {
+        openapi: '3.0.0',
+        info: {
+          title: 'Test API',
+          version: '1.0.0',
+        },
+        paths: {
+          '/api/v1/product': {
+            get: {
+              operationId: 'getAllProducts',
+              tags: ['Product'],
+              responses: {},
+            },
+          },
+          '/api/v1/product/{id}': {
+            get: {
+              operationId: 'getProductById',
+              tags: ['Product'],
+              responses: {},
+            },
+          },
+          '/api/v1/product/sku/{sku}': {
+            get: {
+              operationId: 'getProductBySku',
+              tags: ['Product'],
+              responses: {},
+            },
+          },
+        },
+      };
+
+      const options: ResourceExtractionOptions = {
+        includePatterns: ['/api/v1/product/**'],
+      };
+
+      const resources = extractResourceGroups(spec, options);
+
+      // Should include all three operations (base path + nested paths)
+      const allOps = resources.flatMap((r) => r.operations);
+      expect(allOps.length).toBe(3);
+      expect(allOps.map((op) => op.operationId).sort()).toEqual([
+        'getAllProducts',
+        'getProductById',
+        'getProductBySku',
+      ]);
+    });
+
     it('should handle operations with multiple tags', () => {
       const spec: OpenAPISpec = {
         openapi: '3.0.0',
