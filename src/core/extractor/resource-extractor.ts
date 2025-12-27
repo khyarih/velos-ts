@@ -250,11 +250,14 @@ export function inferResourceInfo(
         basePath = '/' + allSegments.slice(0, 3).join('/');
       } else if (allSegments.length >= 4) {
         // Apply grouping strategy
+        // Safe to access allSegments[2] here since length >= 4
+        const rootSegment = allSegments[2] as string;
+
         if (strategy === 'root') {
           // Always use root resource (first segment after version)
           // /api/v1/orders/items → ['orders']
           // /api/v1/admin/products → ['admin']
-          resourceSegments = [allSegments[2]];
+          resourceSegments = [rootSegment];
           basePath = '/' + allSegments.slice(0, 3).join('/');
         } else if (strategy === 'full') {
           // Use all path segments (old behavior)
@@ -269,7 +272,7 @@ export function inferResourceInfo(
 
           if (hasPathParams) {
             // /api/v1/orders/{id}/items → ['orders'] (always root, ignore depth)
-            resourceSegments = [allSegments[2]];
+            resourceSegments = [rootSegment];
             basePath = '/' + allSegments.slice(0, 3).join('/');
           } else {
             // /api/v1/admin/products → ['admin', 'products'] (if depth >= 2)
