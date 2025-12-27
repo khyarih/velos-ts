@@ -8,11 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- ESLint configuration
-- Prettier formatting
-- Additional code generators (DTOs, interfaces)
-- Support for OpenAPI 3.1.x
-- Watch mode for continuous generation
+- Additional code generators (DTOs, interfaces, custom templates)
+- Support for OpenAPI 3.1.x specification
+- Watch mode for continuous generation on spec changes
+- Plugin system for custom generators
+- CLI interactive mode for scaffolding projects
 
 ---
 
@@ -63,12 +63,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Type aliases are still generated at the top of repository files
 - Updated main README to reference examples directory
 - Enhanced JSDoc generation to include response codes and descriptions
+- **Code Quality**: Prettier formatting now enforced across the codebase
+  - Added `.prettierrc.json` and `.prettierignore` configuration
+  - Ensures consistent code style in generated and source files
+
+### Fixed
+- **Dynamic Path Structure Support**: Resource grouping now works with any API path structure
+  - Previously hardcoded for `/api/vX/` patterns
+  - Now supports `/api/products`, `/products`, and custom prefixes
+  - `resourceStartIndex` dynamically calculated based on actual path structure
+- **Pattern Matching for Base Paths**: `/**` wildcard patterns now correctly match base paths
+  - **Before**: `/api/v1/product/**` only matched nested paths like `/api/v1/product/{id}`
+  - **After**: `/api/v1/product/**` matches both `/api/v1/product` AND nested paths
+  - Fixes issue where endpoints without path parameters were excluded from generation
+  - Example: `GET /api/v1/product` (list all) is now included alongside `GET /api/v1/product/{id}`
+- **Query Parameter Type Naming**: Fixed inconsistency between type definition and usage
+  - Type interfaces now consistently use PascalCase (e.g., `GetOrdersByDateRangeQueryParams`)
+  - Previously defined with PascalCase but referenced with camelCase, causing TypeScript errors
+- **Type Alias Generation**: All used schemas now get type aliases created
+  - Removed incorrect skip logic that prevented aliases for certain schemas (e.g., `Page`)
+  - All schemas referenced in the OpenAPI spec are now properly aliased
+  - Ensures all types used in method signatures are declared
 
 ### Technical Details
 - Added `resourceGrouping` configuration schema with `depth` and `strategy` options
 - Updated `inferResourceInfo()` to support configurable grouping strategies
+- Introduced dynamic `resourceStartIndex` calculation for flexible path structure support
+- Enhanced `matchesAnyPattern()` to properly handle `/**` wildcard patterns with base path matching
 - Updated `extractResources()` and `extractResourceGroups()` to accept grouping configuration
+- Fixed `extractMethodSignature()` to use `toPascalCase` for query parameter type names
+- Removed skip logic in `generateTypeAliases()` to create aliases for all used schemas
 - Added comprehensive tests for all grouping strategies and depth configurations
+- Added test for base path matching with `/**` patterns
 - Updated `mapSchemaToTypeString()` to return schema names directly instead of full paths
 - Updated `mapSchemaTypeToTypeScript()` for consistent type alias usage
 - Added `generateJSDoc()` function in method-generator.ts to extract and document response codes
@@ -76,7 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Created `/examples` directory with comprehensive documentation
 - Created `/docs/RESOURCE_GROUPING.md` with detailed configuration guide
 - Added `generated-code-example.ts` showing practical usage of response code documentation
-- All 183 tests passing
+- All 186 tests passing (added 3 new tests)
 
 ---
 
