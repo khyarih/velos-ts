@@ -82,9 +82,28 @@ function generateJSDoc(operation: NormalizedOperation): string[] {
     lines.push('   * **Response Codes:**');
 
     const responses = operation.responses;
-    // Sort status codes numerically
+    // Sort status codes numerically, with non-numeric codes (like 'default') at the end
     const sortedCodes = Object.keys(responses).sort((a, b) => {
-      return parseInt(a) - parseInt(b);
+      const numA = parseInt(a, 10);
+      const numB = parseInt(b, 10);
+
+      // Both are numbers - sort numerically
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB;
+      }
+
+      // a is a number, b is not - a comes first
+      if (!isNaN(numA)) {
+        return -1;
+      }
+
+      // b is a number, a is not - b comes first
+      if (!isNaN(numB)) {
+        return 1;
+      }
+
+      // Both are non-numeric - sort alphabetically
+      return a.localeCompare(b);
     });
 
     sortedCodes.forEach((statusCode) => {
