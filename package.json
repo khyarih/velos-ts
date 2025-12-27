@@ -51,6 +51,8 @@
     "dist",
     "bin",
     "templates",
+    "examples",
+    "docs",
     "README.md",
     "LICENSE"
   ],
@@ -86,8 +88,8 @@
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "@vitest/coverage-v8": "^4.0.16",
     "@vitest/ui": "^4.0.16",
     "eslint": "^8.56.0",

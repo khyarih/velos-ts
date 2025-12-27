@@ -86,8 +86,14 @@ export function generateRepositories(config: GeneratorConfig): GenerationResult 
     includePatterns: config.includePatterns,
     excludePatterns: config.excludePatterns,
     inferPrimaryEntityType: true,
+    resourceGrouping: config.resourceGrouping,
   });
   console.log(`[EXTRACTED] ${resources.length} resources identified`);
+  if (config.resourceGrouping) {
+    console.log(
+      `[CONFIG] Grouping strategy: ${config.resourceGrouping.strategy || 'auto'}, depth: ${config.resourceGrouping.depth || 1}`
+    );
+  }
   for (const resource of resources) {
     console.log(
       `  - ${resource.name} (${resource.operations.length} operations, base: ${resource.basePath})`

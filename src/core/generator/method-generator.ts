@@ -16,7 +16,7 @@ import type { OpenAPISchema, OpenAPISpec } from '../../types/openapi.types';
 import type { ResourceGroup, MethodSignature, MethodParameter } from '../../types/generator.types';
 import type { NormalizedOperation } from '../spec-loader/normalizer';
 import { extractSchemaName } from '../../utils/schema-utils';
-import { toCamelCase } from '../../utils/string-utils';
+import { toCamelCase, toPascalCase } from '../../utils/string-utils';
 import { inferReturnType } from '../analyzer/type-analyzer';
 
 /**
@@ -38,17 +38,9 @@ export function generateMethod(
 
   const lines: string[] = [];
 
-  // JSDoc comment
-  lines.push('  /**');
-  if (operation.summary) {
-    lines.push(`   * ${operation.summary}`);
-  }
-  if (operation.description) {
-    lines.push(`   * ${operation.description}`);
-  }
-  lines.push('   *');
-  lines.push('   * @async');
-  lines.push('   */');
+  // JSDoc comment with comprehensive documentation
+  const jsdocLines = generateJSDoc(operation);
+  lines.push(...jsdocLines);
 
   // Method signature
   lines.push(`  async ${methodName}(${signature.params}): ${signature.returnType} {`);
@@ -60,6 +52,72 @@ export function generateMethod(
   lines.push('  }');
 
   return lines.join('\n');
+}
+
+/**
+ * Generates JSDoc comment with response codes from OpenAPI spec
+ *
+ * @param operation - Operation
+ * @returns Array of JSDoc comment lines
+ */
+function generateJSDoc(operation: NormalizedOperation): string[] {
+  const lines: string[] = [];
+
+  lines.push('  /**');
+
+  // Summary
+  if (operation.summary) {
+    lines.push(`   * ${operation.summary}`);
+  }
+
+  // Description
+  if (operation.description) {
+    if (operation.summary) lines.push('   *');
+    lines.push(`   * ${operation.description}`);
+  }
+
+  // Response codes (only if declared in spec)
+  if (operation.responses && Object.keys(operation.responses).length > 0) {
+    lines.push('   *');
+    lines.push('   * **Response Codes:**');
+
+    const responses = operation.responses;
+    // Sort status codes numerically, with non-numeric codes (like 'default') at the end
+    const sortedCodes = Object.keys(responses).sort((a, b) => {
+      const numA = parseInt(a, 10);
+      const numB = parseInt(b, 10);
+
+      // Both are numbers - sort numerically
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB;
+      }
+
+      // a is a number, b is not - a comes first
+      if (!isNaN(numA)) {
+        return -1;
+      }
+
+      // b is a number, a is not - b comes first
+      if (!isNaN(numB)) {
+        return 1;
+      }
+
+      // Both are non-numeric - sort alphabetically
+      return a.localeCompare(b);
+    });
+
+    sortedCodes.forEach((statusCode) => {
+      const response = responses[statusCode];
+      const description = response?.description || '';
+      lines.push(`   * - \`${statusCode}\`: ${description}`);
+    });
+  }
+
+  lines.push('   *');
+  lines.push('   * @async');
+  lines.push('   */');
+
+  return lines;
 }
 
 /**
@@ -113,7 +171,7 @@ export function extractMethodSignature(
   // Query parameters
   const queryParams = operation.parameters?.filter((p) => p.in === 'query') || [];
   if (queryParams.length > 0) {
-    const queryTypeName = `${toCamelCase(operation.operationId)}QueryParams`;
+    const queryTypeName = `${toPascalCase(operation.operationId)}QueryParams`;
     parameters.push({
       name: 'queryParams',
       type: queryTypeName,

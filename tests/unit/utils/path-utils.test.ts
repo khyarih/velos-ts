@@ -261,9 +261,7 @@ describe('Path Utilities', () => {
     });
 
     it('should use custom placeholder', () => {
-      expect(removePathParameters('/api/v1/product/{id}', ':param')).toBe(
-        '/api/v1/product/:param'
-      );
+      expect(removePathParameters('/api/v1/product/{id}', ':param')).toBe('/api/v1/product/:param');
     });
   });
 

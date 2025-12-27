@@ -16,6 +16,16 @@ import { singularize, toPascalCase } from '../../utils/string-utils';
 import { getPathSegments } from '../../utils/path-utils';
 
 /**
+ * Resource grouping configuration
+ */
+export interface ResourceGroupingConfig {
+  /** Number of path segments to use for grouping */
+  depth?: number;
+  /** Grouping strategy */
+  strategy?: 'root' | 'full' | 'auto';
+}
+
+/**
  * Resource extraction options
  */
 export interface ResourceExtractionOptions {
@@ -27,6 +37,8 @@ export interface ResourceExtractionOptions {
   inferPrimaryEntityType?: boolean;
   /** Custom resource configuration */
   resourceConfig?: Map<string, any>;
+  /** Resource grouping configuration */
+  resourceGrouping?: ResourceGroupingConfig;
 }
 
 /**
@@ -34,6 +46,7 @@ export interface ResourceExtractionOptions {
  * Simpler version that doesn't require the full spec
  *
  * @param operations - Array of normalized operations
+ * @param groupingConfig - Optional resource grouping configuration
  * @returns Array of resource groups
  *
  * @example
@@ -42,26 +55,34 @@ export interface ResourceExtractionOptions {
  * const resources = extractResources(operations);
  * ```
  */
-export function extractResources(operations: NormalizedOperation[]): ResourceGroup[] {
+export function extractResources(
+  operations: NormalizedOperation[],
+  groupingConfig?: ResourceGroupingConfig
+): ResourceGroup[] {
   const resourceMap = new Map<string, ResourceGroup>();
 
   for (const operation of operations) {
     // Infer resource information from path
-    const resourceInfo = inferResourceInfo(operation.path, operation.tags?.[0] || 'Uncategorized');
+    const resourceInfo = inferResourceInfo(
+      operation.path,
+      operation.tags?.[0] || 'Uncategorized',
+      groupingConfig
+    );
 
     // Get or create resource group
-    if (!resourceMap.has(resourceInfo.resourceKey)) {
-      resourceMap.set(resourceInfo.resourceKey, {
+    let group = resourceMap.get(resourceInfo.resourceKey);
+    if (!group) {
+      group = {
         name: resourceInfo.resourceName,
         resourceKey: resourceInfo.resourceKey,
         basePath: resourceInfo.basePath,
         operations: [],
         tag: operation.tags?.[0] || 'Uncategorized',
-      });
+      };
+      resourceMap.set(resourceInfo.resourceKey, group);
     }
 
     // Add operation to resource group
-    const group = resourceMap.get(resourceInfo.resourceKey)!;
     group.operations.push(operation);
   }
 
@@ -93,6 +114,7 @@ export function extractResourceGroups(
     excludePatterns,
     inferPrimaryEntityType = true,
     resourceConfig,
+    resourceGrouping,
   } = options;
 
   // Extract all operations from spec
@@ -118,24 +140,29 @@ export function extractResourceGroups(
 
   for (const operation of filteredOperations) {
     // Infer resource information from path
-    const resourceInfo = inferResourceInfo(operation.path, operation.tags?.[0] || 'Uncategorized');
+    const resourceInfo = inferResourceInfo(
+      operation.path,
+      operation.tags?.[0] || 'Uncategorized',
+      resourceGrouping
+    );
 
     // Get or create resource group
-    if (!resourceMap.has(resourceInfo.resourceKey)) {
+    let group = resourceMap.get(resourceInfo.resourceKey);
+    if (!group) {
       const config = resourceConfig?.get(resourceInfo.resourceName);
 
-      resourceMap.set(resourceInfo.resourceKey, {
+      group = {
         name: resourceInfo.resourceName,
         resourceKey: resourceInfo.resourceKey,
         basePath: resourceInfo.basePath,
         operations: [],
         tag: operation.tags?.[0] || 'Uncategorized',
         config,
-      });
+      };
+      resourceMap.set(resourceInfo.resourceKey, group);
     }
 
     // Add operation to resource group
-    const group = resourceMap.get(resourceInfo.resourceKey)!;
     group.operations.push(operation);
   }
 
@@ -157,6 +184,7 @@ export function extractResourceGroups(
  *
  * @param pathPattern - API endpoint path
  * @param primaryTag - Primary tag from OpenAPI spec
+ * @param groupingConfig - Resource grouping configuration
  * @returns Resource information
  *
  * @example
@@ -180,7 +208,15 @@ export function extractResourceGroups(
  * // }
  * ```
  */
-export function inferResourceInfo(pathPattern: string, _primaryTag?: string): ResourceInfo {
+export function inferResourceInfo(
+  pathPattern: string,
+  _primaryTag?: string,
+  groupingConfig?: ResourceGroupingConfig
+): ResourceInfo {
+  // Get configuration with defaults
+  const depth = groupingConfig?.depth ?? 1;
+  const strategy = groupingConfig?.strategy ?? 'auto';
+
   // Remove path parameters
   const pathWithoutParams = pathPattern.replace(/\/\{[^}]+\}/g, '');
 
@@ -200,6 +236,7 @@ export function inferResourceInfo(pathPattern: string, _primaryTag?: string): Re
   // Determine resource segment(s) based on path structure
   let resourceSegments: string[];
   let basePath: string;
+  let resourceStartIndex: number; // Index where resource segments start
 
   // Pattern recognition: /api/vX/resource or /api/vX/group/resource
   if (allSegments[0] === 'api') {
@@ -207,30 +244,67 @@ export function inferResourceInfo(pathPattern: string, _primaryTag?: string): Re
       allSegments.length > 1 && allSegments[1] !== undefined && /^v\d+$/.test(allSegments[1]);
 
     if (hasVersion) {
-      // Format: /api/v1/resource or /api/v1/group/resource
-      if (allSegments.length === 3 && allSegments[2] !== undefined) {
+      // Format: /api/v1/resource - resources start at index 2
+      resourceStartIndex = 2;
+
+      if (
+        allSegments.length === resourceStartIndex + 1 &&
+        allSegments[resourceStartIndex] !== undefined
+      ) {
         // /api/v1/product → ['product']
-        resourceSegments = [allSegments[2]];
-        basePath = '/' + allSegments.slice(0, 3).join('/');
-      } else if (allSegments.length >= 4) {
-        // /api/v1/admin/product → ['admin', 'product']
-        // Take last 2 segments as resource for nested resources
-        resourceSegments = allSegments.slice(-2);
-        basePath = '/' + allSegments.join('/');
+        resourceSegments = [allSegments[resourceStartIndex] as string];
+        basePath = '/' + allSegments.slice(0, resourceStartIndex + 1).join('/');
+      } else if (allSegments.length >= resourceStartIndex + 2) {
+        // Apply grouping strategy
+        // Safe to access allSegments[resourceStartIndex] here since length >= resourceStartIndex + 2
+        const rootSegment = allSegments[resourceStartIndex] as string;
+
+        if (strategy === 'root') {
+          // Always use root resource (first segment after version)
+          // /api/v1/orders/items → ['orders']
+          // /api/v1/admin/products → ['admin']
+          resourceSegments = [rootSegment];
+          basePath = '/' + allSegments.slice(0, resourceStartIndex + 1).join('/');
+        } else if (strategy === 'full') {
+          // Use all resource segments after version (not just last 2)
+          // /api/v1/orders/items → ['orders', 'items']
+          // /api/v1/admin/products → ['admin', 'products']
+          // /api/v1/admin/products/categories → ['admin', 'products', 'categories']
+          resourceSegments = allSegments.slice(resourceStartIndex);
+          basePath = '/' + allSegments.join('/');
+        } else {
+          // strategy === 'auto': Auto-detect based on path parameters
+          // If original path has params, treat additional segments as sub-resources
+          const hasPathParams = pathPattern.includes('/{');
+
+          if (hasPathParams) {
+            // /api/v1/orders/{id}/items → ['orders'] (always root, ignore depth)
+            resourceSegments = [rootSegment];
+            basePath = '/' + allSegments.slice(0, resourceStartIndex + 1).join('/');
+          } else {
+            // /api/v1/admin/products → ['admin', 'products'] (if depth >= 2)
+            // /api/v1/products/sku → ['products'] (depth=1, use root)
+            resourceSegments = allSegments.slice(resourceStartIndex, resourceStartIndex + depth);
+            // BasePath includes prefix + depth resource segments
+            basePath = '/' + allSegments.slice(0, resourceStartIndex + depth).join('/');
+          }
+        }
       } else {
         // Fallback
-        resourceSegments = allSegments.slice(2);
+        resourceSegments = allSegments.slice(resourceStartIndex);
         basePath = '/' + allSegments.join('/');
       }
     } else {
-      // Format: /api/resource (no version)
-      resourceSegments = allSegments.slice(1);
-      basePath = pathWithoutParams;
+      // Format: /api/resource (no version) - resources start at index 1
+      resourceStartIndex = 1;
+      resourceSegments = allSegments.slice(resourceStartIndex, resourceStartIndex + depth);
+      basePath = '/' + allSegments.slice(0, resourceStartIndex + depth).join('/');
     }
   } else {
-    // No /api prefix
-    resourceSegments = allSegments;
-    basePath = pathWithoutParams;
+    // No /api prefix - resources start at index 0
+    resourceStartIndex = 0;
+    resourceSegments = allSegments.slice(resourceStartIndex, resourceStartIndex + depth);
+    basePath = '/' + allSegments.slice(0, resourceStartIndex + depth).join('/');
   }
 
   // Ensure we have at least one segment
@@ -401,10 +475,41 @@ function extractSchemaNameFromRef(ref: string): string {
  * @param path - Path to check
  * @param patterns - Patterns to match against
  * @returns True if path matches any pattern
+ *
+ * Pattern rules:
+ * - `*` matches any characters except `/` (single segment)
+ * - `**` matches any characters including `/` (multiple segments)
+ * - `/path/**` matches `/path` AND `/path/anything`
+ *
+ * @example
+ * `/api/v1/product**` matches:
+ *   - `/api/v1/product`
+ *   - `/api/v1/products`
+ *   - `/api/v1/product/{id}`
+ *
+ * `/api/v1/product/**` matches:
+ *   - `/api/v1/product`
+ *   - `/api/v1/product/{id}`
+ *   - `/api/v1/product/sku/{sku}`
  */
 function matchesAnyPattern(path: string, patterns: string[]): boolean {
   return patterns.some((pattern) => {
-    const regex = new RegExp('^' + pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*') + '$');
+    let regexPattern: string;
+
+    // Special handling for /** pattern - should match base path too
+    // /api/v1/product/** should match both /api/v1/product and /api/v1/product/anything
+    if (pattern.endsWith('/**')) {
+      const basePath = pattern.slice(0, -3); // Remove /**
+      // Replace wildcards in base path first
+      const baseRegex = basePath.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*');
+      // Add optional /anything part (already in regex format, don't process further)
+      regexPattern = baseRegex + '(/.*)?';
+    } else {
+      // Standard wildcard replacement
+      regexPattern = pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*');
+    }
+
+    const regex = new RegExp('^' + regexPattern + '$');
     return regex.test(path);
   });
 }

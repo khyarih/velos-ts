@@ -55,13 +55,12 @@ export function createTestConfig(overrides: Partial<GeneratorConfig> = {}): Gene
     outputDir: './output',
     apiSpecTypesPath: '@/api/api-spec',
     overwrite: true,
+    useEnhancements: true,
     includePatterns: [],
     excludePatterns: [],
     generateInterfaces: true,
     generateTypeAliases: true,
     generateJSDocs: true,
-    generateIndex: true,
-    generateReadme: true,
     ...overrides,
   };
 }

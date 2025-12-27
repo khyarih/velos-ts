@@ -192,7 +192,7 @@ export function inferReturnType(operation: any, spec: OpenAPISpec): string {
 export function mapSchemaToTypeString(schema: OpenAPISchema, spec: OpenAPISpec): string {
   if (schema.$ref) {
     const schemaName = extractSchemaName(schema.$ref);
-    return `components['schemas']['${schemaName}']`;
+    return schemaName;
   }
 
   if (schema.type === 'array' && schema.items) {
@@ -347,7 +347,7 @@ function mapSchemaTypeToTypeScript(schema: any): string {
 
   if (schema.$ref) {
     const schemaName = extractSchemaName(schema.$ref);
-    return `components['schemas']['${schemaName}']`;
+    return schemaName;
   }
 
   if (schema.enum) {

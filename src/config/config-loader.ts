@@ -77,11 +77,14 @@ export function loadConfigFromFile(configPath: string): GeneratorConfig {
   // Validate configuration
   const validation = safeValidateConfig(config);
   if (!validation.success) {
-    const errors = getValidationErrors(validation.error!);
+    const validationError = validation.error;
+    const errors = validationError
+      ? getValidationErrors(validationError)
+      : ['Unknown validation error'];
     throw new ConfigLoadError(
       `Invalid configuration:\n${errors.join('\n')}`,
       'CONFIG_VALIDATION_ERROR',
-      validation.error
+      validationError
     );
   }
 
@@ -256,6 +259,23 @@ generateJSDocs: true
 #   repositoryInterface: 'I{Resource}Repository'
 #   repositoryFile: '{resource}.repository.ts'
 #   methodNaming: camelCase
+
+# Resource grouping configuration (optional)
+# Controls how endpoints are grouped into repositories
+# resourceGrouping:
+#   # Grouping strategy:
+#   # - auto: Intelligently groups sub-resources under root (default)
+#   #   Example: /api/v1/orders/{id}/items → grouped in OrderRepository
+#   # - root: Always use first segment for maximum grouping
+#   #   Example: /api/v1/admin/products → AdminRepository
+#   # - full: Creates separate repositories for nested resources
+#   #   Example: /api/v1/orders/{id}/items → OrderItemRepository
+#   strategy: auto
+#
+#   # Number of path segments to use for grouping (1-3, default: 1)
+#   # With depth=1: /api/v1/admin/products → AdminRepository
+#   # With depth=2: /api/v1/admin/products → AdminProductRepository
+#   depth: 1
 
 # Custom template directory (optional)
 # templateDir: ./templates

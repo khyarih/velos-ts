@@ -45,7 +45,7 @@ npm install --save-dev git+https://github.com/khyarih/velos-ts.git
 npm install --save-dev git+https://github.com/khyarih/velos-ts.git#branch-name
 
 # Specific tag/release
-npm install --save-dev git+https://github.com/khyarih/velos-ts.git#v2.0.0
+npm install --save-dev git+https://github.com/khyarih/velos-ts.git#v1.0.0
 ```
 
 ### Initialize Configuration
@@ -98,6 +98,21 @@ if (result.success) {
   console.error(result.error); // Type: ErrorDetails
 }
 ```
+
+## Examples
+
+Comprehensive examples for common use cases:
+
+### 🍪 [Server-Side Cookie Authentication](./examples/server-side-cookies-auth.ts)
+Complete guide for HTTP-only cookie authentication with CSRF protection:
+- Basic cookie authentication setup
+- CSRF token handling with interceptors
+- Session expiry and error handling
+- React integration example
+- Backend configuration requirements
+
+### 📚 [More Examples](./examples/)
+Visit the [examples directory](./examples/) for more practical implementations.
 
 ## How It Works
 
