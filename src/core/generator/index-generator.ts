@@ -118,7 +118,7 @@ export function generateReadme(repositories: GeneratedRepository[]): string {
   lines.push('To regenerate these files:');
   lines.push('');
   lines.push('```bash');
-  lines.push('npm run generate:repos');
+  lines.push('npx velos generate');
   lines.push('```');
   lines.push('');
   lines.push('---');

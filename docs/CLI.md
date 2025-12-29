@@ -465,7 +465,7 @@ Add to your `package.json`:
   "scripts": {
     "generate:types": "openapi-typescript ./api-docs.json -o ./src/api/api-spec.ts",
     "generate:repos": "velos generate",
-    "generate": "npm run generate:types && npm run generate:repos",
+    "generate": "npm run generate:types && npx velos generate",
     "predev": "npm run generate",
     "prebuild": "npm run generate"
   }
