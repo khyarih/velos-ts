@@ -503,6 +503,10 @@ function matchesAnyPattern(path: string, patterns: string[]): boolean {
       // Replace wildcards in base path first
       regexPattern = basePath.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*');
       // Add optional /anything part (already in regex format, don't process further)
+    } else if (pattern.endsWith('**')) {
+      // Handle patterns ending with ** (but not /**)
+      const basePath = pattern.slice(0, -2); // Remove **
+      regexPattern = basePath.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*');
     } else {
       // Standard wildcard replacement
       regexPattern = pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*');
