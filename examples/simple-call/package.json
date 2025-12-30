@@ -1,0 +1,17 @@
+{
+  "name": "test-velos",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "openapi-typescript": "^7.10.1",
+    "tsx": "^4.21.0",
+    "velos-ts": "github:khyarih/velos-ts#dev"
+  }
+}
